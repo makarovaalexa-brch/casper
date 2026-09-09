@@ -206,3 +206,64 @@ scored cohort halves the greedy and tree stages on *any* dataset. The recorded p
 consistent with that but sublinear in practice — 1,822 users cost 10,210 s against 10,000 users at
 37,191 s, so a 5.5x cut in users bought only 3.6x in time **[R]** — so there is real fixed overhead
 and the saving should not be assumed proportional.
+
+## ADDENDUM 2, 2026-09-10 — the candidate must be a dataset other people use
+
+Author constraint: nothing exotic. That is the right constraint, and it interacts with two hard
+requirements of *our* pipeline, which together do most of the filtering.
+
+**Filter 1 — graded ratings.** The item answer is a half-star level on a ten-band scale, and the
+tower's sign-init table is ten entries wide (`gamma(level)` = ten values, logged at every i26 build).
+A play-count dataset cannot supply that answer without redefining what an item answer *is*, which
+changes the instrument rather than the data. **This is not a preference; it is a contract.**
+
+**Filter 2 — an attribute vocabulary reducible to item -> concept membership** with a >= 30-member
+floor. Without it the concept bank, and therefore the larger of the paper's two results, cannot
+travel.
+
+### The standard candidates against both filters
+
+| dataset | standing in the literature | graded ratings | attribute vocabulary | verdict |
+|---|---|---|---|---|
+| **Netflix Prize** | **highest for our exact problem**: Golbandi 2011, whose tree we use, ran it; Hu and Yu 2013, our nearest rival, ran it (with ML-1M and Yahoo); and Liang, RecVAE and EASE all report on it, so the protocol is native and parity baselines exist | yes, 1--5, deep profiles | **none in the dump** | **best on standing, blocked on attributes** — see the transplant below |
+| **Amazon (Books or one category)** | the most-used non-MovieLens benchmark in current CF | yes, 1--5 | category paths | **strong**; standard 5-core splits are shallow, so check depth |
+| **Yelp** | 15 mentions in our own index, second only to MovieLens | yes, 1--5 | business categories | **strong**; a domain shift, since "have you seen" becomes "have you been to" |
+| **Goodreads (UCSD)** | moderate, and **already half-built here** | yes, 1--5 | `popular_shelves` | strong, see the correction above |
+| goodbooks-10k | moderate | yes, 1--5 | `book_tags` | fast but **median 8 ratings per user** |
+| **Last.fm, any size** | high in the tag literature | **NO — listening counts** | tags | **OUT on filter 1.** hetrec2011-lastfm-2k is also only **1,892 users / 17,632 artists**, far too few for the held-out split; LFM-1b/2b and Last.fm-360K are larger but still play counts |
+| **MSD / Taste Profile** | in Liang's own triple with ML-20M and Netflix | **NO — play counts** | tags via the Last.fm subset | **OUT on filter 1**, same reason |
+| ML-20M | high | yes | Tag Genome | not a second dataset, and not smaller (1.10x) |
+
+So the constraint bites hard: **of the standard options, only Amazon, Yelp and Goodreads clear both
+filters natively.** Last.fm and MSD fail on the answer contract, not on availability.
+
+### The Netflix option worth costing separately
+
+Netflix is the dataset a reviewer of *this* paper would most expect, because the interview-tree
+literature we are arguing with lives there. Its only gap is attributes, and there is a clean way to
+close it: **Netflix items are films, and the Tag Genome is a film vocabulary.** Join Netflix's
+`movie_titles.csv` to MovieLens on title and year and transplant concept *membership* only. The
+concept answer itself is computed from the user's own history over the member films
+(`signed_answers.py:43`), so nothing else needs importing.
+
+That design has a property worth having: **the concept vocabulary would be identical across the two
+datasets**, which separates "does the finding depend on the users and the catalogue" from "does it
+depend on the particular concepts". It must of course be stated plainly in the paper.
+
+**The deciding number is join coverage**, and it is cheap: Netflix has 17,770 titles, and what matters
+is what fraction match a genome-covered MovieLens film, and whether the surviving concepts still clear
+the >= 30-member floor. An hour of work, no training, and it decides whether Netflix is a
+two-channel dataset or an item-channel-only one.
+
+### Recommended order, revised for the standardness constraint
+
+1. **Netflix**, contingent on the title-year join clearing coverage. Highest standing with exactly the
+   reviewers who will read this, protocol-native, published parity baselines, deep profiles.
+2. **Amazon Books or Yelp**, whichever the depth check favours. Both clear the filters natively and
+   both are unimpeachably standard.
+3. **Goodreads**, cheapest in effort because the mining and a trained RecVAE already exist here, but
+   with the 20k-item / 418-user truncation to resolve first.
+4. **Last.fm, MSD, Gowalla, MIND: not candidates**, because the item answer contract cannot be met.
+
+The pre-flight probe in the previous addendum applies unchanged to whichever is chosen, and the
+answer-rate step remains the go/no-go.
