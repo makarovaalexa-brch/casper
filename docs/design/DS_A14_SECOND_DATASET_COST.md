@@ -267,3 +267,74 @@ two-channel dataset or an item-channel-only one.
 
 The pre-flight probe in the previous addendum applies unchanged to whichever is chosen, and the
 answer-rate step remains the go/no-go.
+
+## ADDENDUM 3, 2026-09-10 — cross-domain, and what is actually available (checked)
+
+Author steer: the datasets should ideally span **different domains**, not all be films. That changes
+the ranking, because Netflix's whole advantage was standing with the movie-elicitation literature,
+and it buys no domain diversity at all.
+
+### Verified availability, checked 2026-09-10
+
+- **Yelp Open Dataset** — live and free for academic use. **188,593 businesses, ~5,997,000 reviews**,
+  11 metro areas; `business.json` carries **categories and attributes**; reviews carry star ratings.
+  4.35 GB compressed. <https://business.yelp.com/data/resources/open-dataset/>
+- **Amazon Reviews 2023** (McAuley Lab, on HuggingFace) — **571M reviews, 48M items, 33 categories**,
+  May 1996 to Sep 2023, item metadata included, **and it publishes standard splits explicitly to
+  encourage RecSys benchmarking**. A 5-core version is 75.3M reviews.
+  <https://amazon-reviews-2023.github.io/>
+- **goodbooks-10k** — 10,000 books, 53,424 users, ~6M ratings, `book_tags.csv` + `tags.csv`.
+  <https://github.com/zygmuntz/goodbooks-10k>
+- **HetRec2011 Last.fm-2k** — 1,892 users, 17,632 artists, 186,479 tag assignments, **listening
+  counts, not ratings**. <https://grouplens.org/datasets/hetrec-2011/>
+
+### Domains reachable under both filters
+
+| domain | candidate | ratings | attribute vocabulary | note |
+|---|---|---|---|---|
+| films | ML-25M *(have)*, Netflix | yes | genome / none | Netflix adds standing, **not diversity** |
+| books | Goodreads (UCSD), goodbooks-10k, Amazon Books | yes | shelves / tags / categories | Goodreads part-built here already |
+| local businesses | **Yelp** | yes, stars | categories + attributes | see below |
+| products, non-media | **Amazon**, any of 33 categories | yes | category paths | standard splits published |
+| music | **only via Amazon CDs / Digital Music** | yes | categories | the dedicated music benchmarks fail filter 1 |
+| news, POI | MIND, Gowalla, Foursquare | **no** | — | out on filter 1 |
+
+**Music is the awkward one.** Every dedicated music benchmark — Last.fm at any size, MSD/Taste
+Profile — is play counts, so the ten-band item answer cannot be formed. Music is reachable only as an
+Amazon category. Yahoo! Music does carry ratings and Hu and Yu used it, but Webscope access is by
+application and should be treated as an availability risk, not a plan.
+
+### Why Yelp is the scientifically sharpest of these
+
+The paper's mechanism is that a user can rarely answer "have you seen this particular film?" but can
+almost always answer "do you like dark humour?". **Yelp is that contrast at its most extreme**: nobody
+has visited more than a sliver of 188,593 businesses, yet everyone can say whether they like Thai
+food. If the finding is real, it should be *larger* on Yelp than on films.
+
+⚠ Two Yelp-specific cautions, both to be settled by the probe rather than argued:
+1. **Geography partitions the catalogue.** A user can only plausibly have visited businesses in their
+   metro, so a naive global catalogue makes the item channel look dead for a reason that is
+   structural rather than behavioural. Either scope the catalogue per metro or state the choice.
+2. **Yelp users are shallow.** Roughly 6M reviews over the full user base; the depth only becomes
+   workable after k-core filtering, and how much survives is exactly what step 1 of the probe
+   measures.
+
+Amazon carries the same shallowness caveat and answers it the same way, with the advantage that its
+published standard splits remove the argument about how to filter.
+
+### Recommended set, revised for domain diversity
+
+Keeping ML-25M as the films anchor:
+
+1. **Yelp** — a genuinely different domain, native categories, graded stars, unimpeachably standard,
+   and the domain where the mechanism should show most clearly.
+2. **Amazon, one non-media category** — books if the priority is a second attribute-rich catalogue,
+   or a product category if the priority is distance from media entirely. Standard splits published.
+3. **Goodreads** — cheapest in effort, since the shelf mining and a trained RecVAE already exist here,
+   but resolve the 20k-item / 418-user truncation first.
+4. **Netflix — demoted.** It remains the dataset our nearest rivals used and would strengthen the
+   engagement with Golbandi and with Hu and Yu, but it is films again and its attributes have to be
+   borrowed. Worth doing only if standing with that literature matters more than breadth.
+
+**Two datasets from two different domains beats three from one**, and the probe decides which
+survive before any training is committed.
