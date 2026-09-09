@@ -132,3 +132,4 @@ models/baselines_ml25m_liang/*.pt
 # ML-1M, downloaded 2026-08-12 for the Hu & Yu (RecSys 2013) replication (B1/TODO 1.12).
 # Public GroupLens dataset, 24 MB; fetched from files.grouplens.org, not derived from anything here.
 data/ml-1m/
+data/goodbooks-10k/
