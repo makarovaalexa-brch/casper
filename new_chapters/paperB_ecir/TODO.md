@@ -31,16 +31,17 @@ State of the artifacts, checked against `chapterB_v2.tex`:
 - Cost: one machine-night; the RQ1 consumer-sweep harness exists.
 - Paper: one sentence in RQ3 or Limitations with the three numbers.
 
-## 4. Code link — DONE in v2 footnote: `https://github.com/makarovaalexa-brch/casper`
-- **Before submission**: replace with an anonymised mirror (anonymous.4open.science or a fresh account); a
+## 4. Code link — v5 carries a withheld-URL footnote (v2's personal GitHub URL removed in v4)
+- **Before submission**: replace the footnote with an anonymised mirror (anonymous.4open.science or a fresh account); a
   personal GitHub URL breaks double-blind. Recorded in `docs/STATE.md`.
 - Before publication: clean the repo (see STATE note).
 
 ## 5. Closed / decided
 - Instrument verifiability: code link suffices; a preprint of the instrument report does not block TORS
   (ACM accepts prior arXiv preprints). Optional.
-- Single dataset: keep; add the one-sentence justification (ML-25M is the only MovieLens release with both
-  ratings and the Tag Genome) to the setup paragraph. **Small edit, pending.**
+- Single dataset: keep. Justification in the setup paragraph, corrected in v4 after the author caught the
+  false claim: ML-20M and ml-latest also carry the Tag Genome, so the paper says ML-25M is the most recent
+  *stable* MovieLens release carrying both ratings and the Tag Genome. **Done.**
 - Baseline provenance, tuning statement, bank result placement, arm counts, bibliography notes, 14 %,
   multiplicity, readability items: done in v2.
 
