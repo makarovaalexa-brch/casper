@@ -94,14 +94,20 @@ class Cohort:
         self.tgt_rows = self.target.tolil().rows
 
 
-def ndcg(P, asked_mask, cohort, head, k=K):
-    """full and tail NDCG@k. `asked_mask` (n x ni bool) removes asked books from the candidates."""
-    p = P.copy()
-    p[asked_mask] = -np.inf
+def ndcg(P, asked_cols, cohort, head, k=K):
+    """full and tail NDCG@k. `asked_cols` are the books asked of EVERY user, so they are dropped
+    from the candidate pool by column rather than through an (n x ni) mask."""
+    p = np.array(P, dtype=np.float32, copy=True)
+    if len(asked_cols):
+        p[:, np.asarray(asked_cols, np.int64)] = -np.inf
     out = np.zeros((2, p.shape[0]), np.float32)
     tp = 1.0 / np.log2(np.arange(2, k + 2))
     for axis, mask in ((0, None), (1, head)):
-        q = p if mask is None else np.where(mask[None, :], -np.inf, p)
+        if mask is None:
+            q = p
+        else:
+            q = p.copy()
+            q[:, mask] = -np.inf
         idx = np.argpartition(-q, k, 1)[:, :k]
         idx = np.take_along_axis(idx, np.argsort(-np.take_along_axis(q, idx, 1), 1), 1)
         for i in range(p.shape[0]):
@@ -121,6 +127,7 @@ class Env:
     def __init__(self, cohort, predict, head, batch=1000):
         self.c = cohort; self.predict = predict; self.head = head; self.batch = batch
         self.memo = {}
+        self.memo_cap = 4096          # HARD RULE 11c: bound every per-state cache
         self.n_evals = 0
 
     def fold_and_score(self, seq):
@@ -130,22 +137,22 @@ class Env:
             return self.memo[key]
         c = self.c
         n, ni = c.n, c.ni
-        X = sparse.lil_matrix((n, ni), dtype=np.float32)
-        asked = np.zeros((n, ni), bool)
         if seq:
             s = np.asarray(seq, np.int64)
-            asked[:, s] = True                       # every question is charged for everyone
-            R = c.rating[:, s].toarray()             # 0 where unanswered
-            liked = R > LIKE_GT
-            rows, cols = np.nonzero(liked)
-            X[rows, s[cols]] = 1.0
-        X = X.tocsr()
+            R = c.rating[:, s].toarray()             # 0 where the user did not rate it
+            rows, cols = np.nonzero(R > LIKE_GT)     # answered AND liked -> folds as a like
+            X = sparse.csr_matrix((np.ones(len(rows), np.float32), (rows, s[cols])),
+                                  shape=(n, ni))
+        else:
+            X = sparse.csr_matrix((n, ni), dtype=np.float32)
         outs = []
         for st in range(0, n, self.batch):
             outs.append(self.predict(X[st:st + self.batch]))
         P = np.vstack(outs)
-        f, t = ndcg(P, asked, c, self.head)
+        f, t = ndcg(P, seq, c, self.head)
         self.n_evals += 1
+        if len(self.memo) >= self.memo_cap:
+            self.memo.pop(next(iter(self.memo)))
         self.memo[key] = (f, t)
         return f, t
 
