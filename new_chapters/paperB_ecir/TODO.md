@@ -49,3 +49,25 @@ State of the artifacts, checked against `chapterB_v2.tex`:
 - Abstract into EasyChair by 21 Sep.
 - Final read for anonymity ("CASPER" not publicly attached to the author before notification).
 - Re-run the numeric cross-check script against the chapter after every edit; page budget ≤ 12.
+
+## 7. Delta review, 2026-09-09 (`reviews_v4/review_A2_delta.md`, `review_D2_final.md`)
+Both reviewers were given v4 and v5 together and instructed to treat the anonymised repository as
+present and complete, so reproducibility was scored on the paper's own description.
+- Strict reviewer: **Weak reject -> Borderline**. Technical soundness 2 -> 3, reproducibility 2 -> 4.
+- Area chair: **Weak accept, unmoved** — "my weak accept was already the level the substance supports".
+  Acceptance probability at a 25%-acceptance venue: about 55%.
+- Both asked for the same two things, done in v6: reframe the abstract so CASPER is the claim, and
+  restore Figure 1.
+
+### Still open, and both are runs rather than edits
+1. **Answerability versus breadth.** Re-run the bank comparison with item questions scored under the
+   concept channel's implicit-watch answerability predicate instead of "rated", and report how much of
+   the $+0.01430$ survives. One predicate changed, existing pipeline, no new model, no regrown tree.
+   The chair would ask for this before camera-ready; the strict reviewer names it as one of two
+   conditions for moving past borderline. **Either outcome is publishable.**
+2. **A symmetric fit for the published selectors.** Refit DRE, one bandit and IGCN on the validation
+   cohort against full NDCG@10 over the same bank, and report whether RQ1 survives. The strict
+   reviewer's other condition. The chair argues it is unavailable in principle for the non-tree
+   families, since refitting their objective on validation NDCG@10 produces CASPER rather than a
+   fairer port — so this is a judgement call, not an obligation.
+3. Second dataset: both agree it is a follow-up paper, not a revision.
