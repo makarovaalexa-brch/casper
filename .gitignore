@@ -133,3 +133,4 @@ models/baselines_ml25m_liang/*.pt
 # Public GroupLens dataset, 24 MB; fetched from files.grouplens.org, not derived from anything here.
 data/ml-1m/
 data/goodbooks-10k/
+data/goodreads_ucsd/
