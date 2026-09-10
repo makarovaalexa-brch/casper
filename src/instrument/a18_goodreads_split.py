@@ -78,6 +78,14 @@ def main():
     log(f"[cohorts] {len(tr_u):,} train / {len(va_u):,} validation / {len(te_u):,} test "
         f"(sampled from {len(ok):,} eligible, matching ML-25M's 140,768/10,000/10,000)")
 
+    # GLOBAL CONTIGUOUS uid numbering: train 0..N-1, then validation, then test -- the layout
+    # data/ml-25m/proc uses and that metrics._load_train_data requires (it indexes rows BY uid).
+    uid = {}
+    for block in (tr_u, va_u, te_u):
+        for x in block:
+            uid[int(x)] = len(uid)
+    log(f"[uid] remapped {len(uid):,} raw Goodreads user ids to contiguous 0..{len(uid)-1}")
+
     # sid vocabulary is defined by the TRAIN cohort's likes, as in the ML-25M build
     tr_mask = np.isin(ul, tr_u)
     train_items = np.unique(il[tr_mask])
@@ -92,6 +100,7 @@ def main():
         keep = np.array([b in sid for b in ii_])
         uu_, ii_ = uu_[keep], ii_[keep]
         s = np.array([sid[int(b)] for b in ii_], np.int32)
+        uu_ = np.array([uid[int(x)] for x in uu_], np.int64)
         if not split_fold:
             pd.DataFrame({"uid": uu_, "sid": s}).to_csv(
                 os.path.join(PROC, f"{name}.csv"), index=False)
@@ -131,6 +140,9 @@ def main():
                                   "~788k arena users would give a better-resourced instrument and "
                                   "make the cross-dataset comparison uninterpretable",
             "seconds": time.time() - t0}
+    np.savez_compressed(os.path.join(PROC, "uid_map.npz"),
+                        raw=np.array(list(uid.keys()), np.int64),
+                        contiguous=np.array(list(uid.values()), np.int64))
     json.dump(meta, open(os.path.join(PROC, "meta.json"), "w"), indent=2)
     log(f"\n[done] {PROC} ({meta['seconds']/60:.1f}m)")
     log(json.dumps({k: meta[k] for k in ("n_items", "n_train_users", "n_val_users",
