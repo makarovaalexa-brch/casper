@@ -43,6 +43,38 @@ CONC_FLOOR = 30
 ML25M_DENSITY = {"median": 37, "mean": 44.5, "concepts": 1031, "tags": 1127}
 K_GRID = (10, 15, 20, 25, 30, 37, 45, 50, 60, 80, 120)
 
+# A SECOND junk pass, added after inspecting the first bank's highest-membership concepts.
+# A17's filter caught reading-process shelves but let three classes through, all of which are
+# highly answerable and carry NO taste signal -- exactly the way to inflate the concept channel's
+# answer rate with vacuous questions:
+#   FORMAT   "e-book", "audible", "nook", "calibre"  -- the reader's device, not the book
+#   STRUCTURAL "part-of-a-series", "first-in-series", "stand-alone"
+#   PROCESS  "didn-t-finish", "recommended"
+#   LIST     "1001-books", "100-essential-novels", "33-keepers" -- list membership, not an attribute
+# Dropping these is conservative for our own claim: it removes easy-to-answer questions from the
+# bank, so the concept channel's measured answer rate can only fall.
+JUNK2_EXACT = set("""
+e-book e-books ebook ebooks nook calibre kobo epub pdf mobi hardback mass-market
+part-of-a-series first-in-series stand-alone standalone stand-alones sequel sequels
+didn-t-finish didnt-finish gave-up not-finished couldn-t-finish
+recommended recommendations rec general-fiction adult-fiction fiction-general
+signed borrowed loaned unread skimmed started
+""".split())
+JUNK2_SUBSTR = ("e-book", "ebook", "audible", "calibre", "kobo", "epub", "-pdf", "hardback",
+                "mass-market", "in-series", "part-of", "stand-alone", "standalone",
+                "didn-t", "didnt", "did-not", "gave-up", "give-up", "not-finish",
+                "recommend", "1001", "100-", "-100", "top-", "best-of", "must-read",
+                "bucket", "keepers", "essential", "boxed", "omnibus", "duplicate")
+
+
+def is_junk2(name):
+    """True for shelves that are format, structural, process or list membership rather than taste."""
+    n = str(name).strip().lower()
+    if n in JUNK2_EXACT:
+        return True
+    return any(sub in n for sub in JUNK2_SUBSTR)
+
+
 
 def log(m):
     print(f"[{time.strftime('%H:%M:%S')}] {m}", flush=True)
@@ -59,8 +91,12 @@ def main():
     sh = pd.read_csv(os.path.join(ARENA, "shelves.csv"))
     sh = sh[sh.csv_book_id.isin(sid.keys())]
     sh["sid"] = sh.csv_book_id.map(sid)
+    n0, t0_ = len(sh), sh.shelf.nunique()
+    sh = sh[~sh.shelf.map(is_junk2)]
     log(f"[shelves] {len(sh):,} (book, shelf) rows, {sh.shelf.nunique():,} distinct shelves, "
         f"{sh.sid.nunique():,} books covered")
+    log(f"[junk2] dropped {n0-len(sh):,} rows and {t0_-sh.shelf.nunique():,} shelves that are "
+        f"format, structural, process or list membership rather than taste")
 
     sh = sh.sort_values("count", ascending=False)
     log("")
