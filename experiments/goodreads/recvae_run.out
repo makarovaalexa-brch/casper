@@ -1,0 +1,47 @@
+[11:11:20] [data] goodreads: 18430 items, train (140768, 18430) nnz=8734110, val 10000 users, test 10000 users
+[11:11:20] [head/tail] 457 head items (top-33% train mass) / 17973 tail items
+[11:11:20] [recipe] {'epochs': 50, 'batch': 500, 'lr': 0.0005, 'gamma': 0.005, 'hidden': 600, 'latent': 200, 'n_enc': 3, 'n_dec': 1, 'dropout': 0.5, 'patience': 10, 'max_minutes': 1000000000.0, 'resume': True}
+[11:25:02] [recvae] ep  1 val 0.2091 13.7m
+[11:38:53] [recvae] ep  2 val 0.2894 27.5m
+[11:52:50] [recvae] ep  3 val 0.3076 41.5m
+[12:06:55] [recvae] ep  4 val 0.3167 55.6m
+[12:21:05] [recvae] ep  5 val 0.3238 69.7m
+[12:35:10] [recvae] ep  6 val 0.3267 83.8m
+[12:49:05] [recvae] ep  7 val 0.3302 97.7m
+[13:03:03] [recvae] ep  8 val 0.3314 111.7m
+[13:16:56] [recvae] ep  9 val 0.3330 125.6m
+[13:31:03] [recvae] ep 10 val 0.3356 139.7m
+[13:45:01] [recvae] ep 11 val 0.3363 153.7m
+[13:59:00] [recvae] ep 12 val 0.3374 167.6m
+[14:13:02] [recvae] ep 13 val 0.3385 181.7m
+[14:27:06] [recvae] ep 14 val 0.3395 195.7m
+[14:40:57] [recvae] ep 15 val 0.3405 209.6m
+[14:54:43] [recvae] ep 16 val 0.3405 223.4m
+[15:08:27] [recvae] ep 17 val 0.3413 237.1m
+[15:22:19] [recvae] ep 18 val 0.3419 251.0m
+[15:36:12] [recvae] ep 19 val 0.3415 264.8m
+[15:50:08] [recvae] ep 20 val 0.3428 278.8m
+[16:03:56] [recvae] ep 21 val 0.3421 292.6m
+[16:17:45] [recvae] ep 22 val 0.3423 306.4m
+[16:31:39] [recvae] ep 23 val 0.3433 320.3m
+[16:45:38] [recvae] ep 24 val 0.3427 334.3m
+[16:59:27] [recvae] ep 25 val 0.3431 348.1m
+[17:13:21] [recvae] ep 26 val 0.3428 362.0m
+[17:27:13] [recvae] ep 27 val 0.3423 375.9m
+[17:41:08] [recvae] ep 28 val 0.3421 389.8m
+[17:54:56] [recvae] ep 29 val 0.3427 403.6m
+[18:08:41] [recvae] ep 30 val 0.3432 417.3m
+[18:22:35] [recvae] ep 31 val 0.3436 431.2m
+[18:36:31] [recvae] ep 32 val 0.3428 445.2m
+[18:50:15] [recvae] ep 33 val 0.3433 458.9m
+[19:04:09] [recvae] ep 34 val 0.3429 472.8m
+[19:17:56] [recvae] ep 35 val 0.3430 486.6m
+[19:31:41] [recvae] ep 36 val 0.3413 500.3m
+[19:45:22] [recvae] ep 37 val 0.3428 514.0m
+[19:59:17] [recvae] ep 38 val 0.3430 527.9m
+[20:13:08] [recvae] ep 39 val 0.3426 541.8m
+[20:26:49] [recvae] ep 40 val 0.3421 555.5m
+[20:40:26] [recvae] ep 41 val 0.3417 569.1m
+[20:40:27] [recvae] early stop @ep41 best 0.3436 @ep31
+[20:40:43] [TEST] full NDCG@10 0.3456 tail 0.2702   (ML-25M's RecVAE: 0.3540/0.2497)
+[20:40:43] [done] 569.4m
