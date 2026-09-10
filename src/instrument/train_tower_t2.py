@@ -167,11 +167,38 @@ import metrics as M                       # canonical loaders + evaluate + NDCG 
 import liang_split as LS                  # reuse the split's own filtering helpers (no drift)
 import recvae as R                        # T1 teacher architecture (IMPORTED, snap-certified port)
 
-PROC = os.path.join(_ROOT, "data", "ml-25m", "proc")
-RAW = os.path.join(_ROOT, "data", "movielens", "ratings.csv")
-OUTDIR = os.path.join(_ROOT, "experiments", "baselines", "ml25m_liang")
+# ---------------------------------------------------------------- dataset selection (2026-09-10)
+# SECOND DATASET support. Everything below is unchanged when CASPER_DATASET is unset or "ml-25m",
+# so the certified ML-25M path is byte-identical; setting it to "goodreads" swaps the five
+# dataset-dependent constants and nothing else. The recipe, architecture, level tables, curriculum
+# and gates are shared verbatim -- that is the point of the port.
+_DATASETS = {
+    "ml-25m": {
+        "proc":   os.path.join(_ROOT, "data", "ml-25m", "proc"),
+        "raw":    os.path.join(_ROOT, "data", "movielens", "ratings.csv"),
+        "outdir": os.path.join(_ROOT, "experiments", "baselines", "ml25m_liang"),
+        "recvae": os.path.join(_ROOT, ".cache", "baselines", "recvae_ml25m_liang.pt"),
+        "genome": os.path.join(_ROOT, "data", "movielens", "genome-scores.csv"),
+    },
+    "goodreads": {
+        "proc":   os.path.join(_ROOT, "data", "goodreads_ucsd", "proc"),
+        "raw":    os.path.join(_ROOT, "data", "goodreads_ucsd", "ratings.csv"),
+        "outdir": os.path.join(_ROOT, "experiments", "goodreads"),
+        "recvae": os.path.join(_ROOT, ".cache", "goodreads", "recvae_goodreads.pt"),
+        "genome": os.path.join(_ROOT, "data", "goodreads_ucsd", "genome-scores.csv"),
+    },
+}
+DATASET = os.environ.get("CASPER_DATASET", "ml-25m")
+if DATASET not in _DATASETS:
+    raise SystemExit(f"CASPER_DATASET={DATASET!r} unknown; choose one of {sorted(_DATASETS)}")
+_LOC = _DATASETS[DATASET]
+
+PROC = _LOC["proc"]
+RAW = _LOC["raw"]
+OUTDIR = _LOC["outdir"]
 CKPT_DIR = os.path.join(_ROOT, ".cache", "instrument")
-RECVAE_CKPT = os.path.join(_ROOT, ".cache", "baselines", "recvae_ml25m_liang.pt")
+RECVAE_CKPT = _LOC["recvae"]
+GENOME = _LOC["genome"]
 
 D = 512          # internal attention width (pb2)
 NLEV = 10        # half-star levels 0.5..5.0 -> 0..9 (matches set_mn_pb2 gamma/beta tables)
@@ -1152,7 +1179,7 @@ def train(args):
     if args.concept_tokens:
         import pandas as pd
         from concept_fold import build_member_matrix
-        gpath = os.path.join(_ROOT, "data", "movielens", "genome-scores.csv")
+        gpath = GENOME
         m2s = {int(m): i for i, m in enumerate(usid)}
         gg = pd.read_csv(gpath); gg = gg[gg["relevance"] >= 0.5]; gg = gg[gg["movieId"].isin(m2s)]
         gg["sid"] = gg["movieId"].map(m2s).astype(np.int64)
