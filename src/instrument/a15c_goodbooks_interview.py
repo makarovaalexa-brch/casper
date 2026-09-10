@@ -157,6 +157,45 @@ class Env:
         return f, t
 
 
+def oracle_curve(env, budgets):
+    """Clairvoyant ceiling: ask each user the books THEY rated highest, among those they rated.
+
+    Not a baseline. It reads the user's own ratings at selection time, which no selector may do, and
+    it is reported only to say how much of the attainable gain any real order captures.
+    """
+    c = env.c
+    n, ni = c.n, c.ni
+    B = max(budgets)
+    per_user = []
+    R = c.rating.tolil()
+    for i in range(n):
+        cols = np.asarray(R.rows[i], np.int64)
+        vals = np.asarray(R.data[i], np.float32)
+        if not len(cols):
+            per_user.append(np.zeros(0, np.int64)); continue
+        per_user.append(cols[np.argsort(-vals, kind="stable")[:B]])
+    out = {}
+    for kb in budgets:
+        rows, colsl = [], []
+        for i, cu in enumerate(per_user):
+            sel = cu[:kb]
+            keep = sel[np.asarray(c.rating[i, sel].todense()).ravel() > LIKE_GT] if len(sel) else sel
+            rows.extend([i] * len(keep)); colsl.extend(keep.tolist())
+        X = sparse.csr_matrix((np.ones(len(rows), np.float32), (rows, colsl)), shape=(n, ni))
+        outs = []
+        for st in range(0, n, env.batch):
+            outs.append(env.predict(X[st:st + env.batch]))
+        P = np.vstack(outs)
+        # each user's own asked set is removed from their own candidates
+        for i, cu in enumerate(per_user):
+            if len(cu[:kb]):
+                P[i, cu[:kb]] = -np.inf
+        f, t = ndcg(P, [], c, env.head)
+        ans = np.array([len(cu[:kb]) for cu in per_user], np.float64)
+        out[kb] = (f, t, float(ans.mean()))
+    return out
+
+
 def greedy_order(env, pool, budget, seed_prefix=()):
     """Lazy-greedy (CELF) prefix-optimal order maximising cohort-mean full NDCG@10."""
     seq = list(seed_prefix)
@@ -261,6 +300,18 @@ def main():
         c = res["curves"][arm][str(B)]
         log(f"[test] {arm:12s} K={B}: full {c['full']:.5f} tail {c['tail']:.5f} "
             f"answers {c['answers']:.2f}")
+
+    log("[oracle] clairvoyant ceiling (reads the user's own ratings; NOT a baseline)")
+    oc = oracle_curve(tenv, budgets)
+    res["curves"]["oracle"] = {}
+    for kb in budgets:
+        f, t, ans = oc[kb]
+        res["curves"]["oracle"][str(kb)] = {"full": float(np.nanmean(f)),
+                                            "tail": float(np.nanmean(t)), "answers": ans}
+        peruser[f"oracle|{kb}|full"] = f; peruser[f"oracle|{kb}|tail"] = t
+    ck16 = res["curves"]["oracle"][str(B)]
+    log(f"[test] {'oracle':12s} K={B}: full {ck16['full']:.5f} tail {ck16['tail']:.5f} "
+        f"answers {ck16['answers']:.2f}   (ceiling)")
 
     # contrasts against the metric-optimised order
     res["contrasts"] = {}
