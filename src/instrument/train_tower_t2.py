@@ -469,8 +469,14 @@ def reproduce_partition():
     show2id = {sid: i for i, sid in enumerate(unique_sid_list)}
     # ---- LEAK / FIDELITY ASSERTS ----
     meta = M.load_meta(PROC)
-    assert len(unique_sid_list) == meta["n_items"] == 18359, "vocab size != proc vocab"
-    assert len(tr_users) == meta["n_train_users"] == 140768, f"train users {len(tr_users)} != 140768"
+    # Expected shapes PER DATASET. The invariants (vocab == proc vocab, train users == meta) are
+    # unchanged; only the literals move, so the guard still catches a wrong or corrupted split.
+    _EXPECT_VOCAB = {"ml-25m": 18359, "goodreads": 18430}[DATASET]
+    _EXPECT_TRAIN = {"ml-25m": 140768, "goodreads": 140768}[DATASET]
+    assert len(unique_sid_list) == meta["n_items"] == _EXPECT_VOCAB, \
+        f"vocab size != proc vocab ({len(unique_sid_list)} vs {_EXPECT_VOCAB} for {DATASET})"
+    assert len(tr_users) == meta["n_train_users"] == _EXPECT_TRAIN, \
+        f"train users {len(tr_users)} != {_EXPECT_TRAIN} for {DATASET}"
     assert len(vd_users) == len(te_users) == 10000, "held-out user count != 10000"
     tr_set, vd_set, te_set = set(tr_users.tolist()), set(vd_users.tolist()), set(te_users.tolist())
     assert tr_set.isdisjoint(vd_set) and tr_set.isdisjoint(te_set), "train overlaps held-out (LEAK)"
@@ -483,7 +489,7 @@ def reproduce_partition():
     n_like_train = int(train_plays[train_plays["movieId"].isin(show2id)].shape[0])
     train_csv_nnz = int(M.load_train(meta["n_items"], PROC).nnz)
     assert n_like_train == train_csv_nnz, f"train like-count {n_like_train} != train.csv nnz {train_csv_nnz}"
-    log(f"[data] LEAK CHECKS PASS: vocab=18359, train=140768 disjoint from 2x10000 held-out, "
+    log(f"[data] LEAK CHECKS PASS [{DATASET}]: vocab={_EXPECT_VOCAB}, train={_EXPECT_TRAIN} disjoint from 2x10000 held-out, "
         f"train likes={n_like_train}==train.csv nnz, vocab-set matches unique_sid.txt")
     return unique_uid, tr_set, vd_set, te_set, len(tr_users), raw, show2id, unique_sid_list
 
