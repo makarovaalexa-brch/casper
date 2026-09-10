@@ -1,5 +1,42 @@
 # STATE — where the project is now
 
+## ★★★ 2026-09-10 — SECOND DATASET: the instrument is being ported to Goodreads
+
+**AUTHOR SAID:** *"commit everything we have, do not edit the paper or the chapter, and replicate the
+process exactly without corner cutting. if you start getting netaive results stop and tell me. Do not
+replicate chapter A full battery, just the instrument itself and its gates"* · *"60h is fine"*.
+
+Full design, gates and STOP conditions: **`docs/design/DS_A17_GOODREADS_ARENA.md`**.
+Costing that led here: `docs/design/DS_A14_SECOND_DATASET_COST.md`.
+
+**Why Goodreads.** Three candidates measured and rejected first: goodbooks-10k (passed on numbers,
+no paper to cite), the Goodreads genre subsets (median **2** ratings per user — a genre slice cuts
+each history to one corner), Netflix (formally withdrawn after a privacy lawsuit; no licensed
+distribution), Amazon/Yelp (1.6–2.7 reviews per user; an interview collects no answers).
+The full UCSD book graph has 104.5M ratings over 816,371 users, mean 128.1 each.
+
+**Two calibrated reductions, both approved, both stated**: arena = the 18,430 most-rated books
+matching ML-25M's arena SIZE (keeps 56.7% of rating events); train cohort sampled to 140,768 to match
+ML-25M rather than using all 683,636 eligible.
+
+**Done**: arena + graded store + shelf vocabulary; concept bank (2,408 concepts, per-book density
+median 37 vs ML-25M's 37); Goodreads emitted in MovieLens RAW shape; the split from the project's own
+`liang_split.py --data goodreads` (18,430 items, 140,768/10,000/10,000). Every stage of the
+instrument-and-gates chain now follows `CASPER_DATASET`, verified both ways.
+
+**Running**: RecVAE teacher, epoch 17 of up to 50, val 0.3413. Tracking ML-25M's own curve with a
+steady ~0.007 offset (ML-25M peaked 0.3512 at ep24, test 0.3540/0.2497).
+
+**Next**: i26 tower (`src/instrument/run_goodreads_tower.ps1`, ~19 h) → concept channel → the Phase-A
+gate battery (g3a, g3b, g6 with `--force`, g9, g5) + a fresh `concept_identity_lift` for R2.
+Phase B is skipped: G1/G4/G8/G2-formal are moot since the belief layer was deleted 2026-08-02.
+
+⚠ **`warm_lr_scale`**: the i26c watchdog comment says 0.01, the certified run's own training log says
+0.1 at every resume. The log is primary evidence and is what the port follows.
+
+⛔ No paper or chapter file is touched by this work.
+
+
 ## ★★★ 2026-08-29 (late) — THE TEST LOOK IS SPENT AND IT REPLICATES
 
 **AUTHOR SAID:** *"continue with todos, inclusing test look"* · *"just no preregistration of anything,
