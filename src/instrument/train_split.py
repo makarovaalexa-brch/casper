@@ -44,7 +44,11 @@ sys.path.insert(0, os.path.join(_ROOT, "scripts", "baselines"))
 import metrics as M
 import liang_split as LS
 
-PROC = os.path.join(_ROOT, "data", "ml-25m", "proc")
+# Dataset selection (2026-09-10): follows CASPER_DATASET, default ml-25m so the certified path is
+# unchanged. Repeated per module rather than imported to avoid an import cycle with train_tower_t2.
+_DS = os.environ.get("CASPER_DATASET", "ml-25m")
+_DSD = {"ml-25m": ("ml-25m", "movielens"), "goodreads": ("goodreads_ucsd", "goodreads_ucsd")}[_DS]
+PROC = os.path.join(_ROOT, "data", _DSD[0], "proc")
 CACHE = os.path.join(_ROOT, ".cache", "instrument")
 CACHE_NPZ = os.path.join(CACHE, "train_foldin_split_98765.npz")
 

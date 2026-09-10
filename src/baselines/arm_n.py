@@ -49,8 +49,18 @@ _ROOT = os.path.abspath(os.path.join(_HERE, "..", ".."))
 sys.path.insert(0, os.path.join(_ROOT, "src", "instrument"))
 from mask_contract import pool_contract                            # noqa: E402
 
-PROC = os.path.join(_ROOT, "data", "ml-25m", "proc")
-CACHE = os.path.join(_ROOT, ".cache", "baselines", "graded_ml25m.npz")
+# ---------------------------------------------------------------- dataset selection (2026-09-10)
+# Follows CASPER_DATASET, defaulting to ml-25m so the certified path is unchanged. The table is
+# repeated per module rather than imported, deliberately: these are low-level data modules and a
+# shared import would create a cycle with train_tower_t2.
+_DS = os.environ.get("CASPER_DATASET", "ml-25m")
+if _DS not in ("ml-25m", "goodreads"):
+    raise SystemExit(f"CASPER_DATASET={_DS!r} unknown")
+_DSDIR = {"ml-25m": ("ml-25m", os.path.join("movielens", "ratings.csv"), "ml25m"),
+          "goodreads": ("goodreads_ucsd", os.path.join("goodreads_ucsd", "ratings.csv"),
+                        "goodreads")}[_DS]
+PROC = os.path.join(_ROOT, "data", _DSDIR[0], "proc")
+CACHE = os.path.join(_ROOT, ".cache", "baselines", f"graded_{_DSDIR[2]}.npz")
 
 
 def _log(msg):

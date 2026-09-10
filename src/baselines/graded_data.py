@@ -26,8 +26,18 @@ from scipy import sparse
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_HERE, "..", ".."))
-PROC = os.path.join(_ROOT, "data", "ml-25m", "proc")
-RAW = os.path.join(_ROOT, "data", "movielens", "ratings.csv")
+# ---------------------------------------------------------------- dataset selection (2026-09-10)
+# Follows CASPER_DATASET, defaulting to ml-25m so the certified path is unchanged. The table is
+# repeated per module rather than imported, deliberately: these are low-level data modules and a
+# shared import would create a cycle with train_tower_t2.
+_DS = os.environ.get("CASPER_DATASET", "ml-25m")
+if _DS not in ("ml-25m", "goodreads"):
+    raise SystemExit(f"CASPER_DATASET={_DS!r} unknown")
+_DSDIR = {"ml-25m": ("ml-25m", os.path.join("movielens", "ratings.csv"), "ml25m"),
+          "goodreads": ("goodreads_ucsd", os.path.join("goodreads_ucsd", "ratings.csv"),
+                        "goodreads")}[_DS]
+PROC = os.path.join(_ROOT, "data", _DSDIR[0], "proc")
+RAW = os.path.join(_ROOT, "data", _DSDIR[1])
 
 
 def _partition():

@@ -156,8 +156,12 @@ def _build_train_stack(args):
     from signed_answers import compute_prereg
     import metrics as M
     import pandas as pd
-    PROC = os.path.join(_ROOT, "data", "ml-25m", "proc")
-    GENOME = os.path.join(_ROOT, "data", "movielens", "genome-scores.csv")
+    # Dataset selection: follows CASPER_DATASET, default ml-25m (certified path unchanged).
+    _DS = os.environ.get("CASPER_DATASET", "ml-25m")
+    _DSD = {"ml-25m": ("ml-25m", "movielens"),
+            "goodreads": ("goodreads_ucsd", "goodreads_ucsd")}[_DS]
+    PROC = os.path.join(_ROOT, "data", _DSD[0], "proc")
+    GENOME = os.path.join(_ROOT, "data", _DSD[1], "genome-scores.csv")
     meta = M.load_meta(PROC); ni = meta["n_items"]
     train_mat = M.load_train(ni, PROC)
     head_mask, cnt = compute_head_mask(train_mat, ni)
