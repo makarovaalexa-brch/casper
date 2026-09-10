@@ -158,9 +158,14 @@ def load_arm_n(log=_log, cohort="test"):
 
     # Invariants. Any of these firing means the arm is not comparable to arm A and must not be run.
     assert te_tr.shape == te_te.shape == g_te_tr.shape == pool.shape, "test-side shape mismatch"
-    assert train.shape[1] == n_items == 18359, f"catalogue drift: {train.shape[1]} vs 18359"
+    # Expected shapes PER DATASET (see the CASPER_DATASET block above). The invariant
+    # (train width == n_items) is unchanged; only the literal moves, so the guard still catches
+    # catalogue drift on either dataset instead of firing on the correct one.
+    _EXPECT_ITEMS = {"ml-25m": 18359, "goodreads": 18430}[_DS]
+    assert train.shape[1] == n_items == _EXPECT_ITEMS,         f"catalogue drift: {train.shape[1]} vs {_EXPECT_ITEMS} for {_DS}"
     assert te_tr.shape[0] == 10000, f"{cohort} cohort size {te_tr.shape[0]}"
-    assert g_train.shape[0] == 140768, f"train cohort size {g_train.shape[0]}"
+    _EXPECT_TRAIN_U = {"ml-25m": 140768, "goodreads": 140768}[_DS]
+    assert g_train.shape[0] == _EXPECT_TRAIN_U,         f"train cohort size {g_train.shape[0]} != {_EXPECT_TRAIN_U} for {_DS}"
     leak = pool.multiply(te_te).nnz
     assert leak == 0, f"POOL/TARGET LEAK: {leak} held-out targets are inside the exclusion mask"
     log(f"[arm_n] ruler: {n_items} items, {te_tr.shape[0]} test users, head={int(head_mask.sum())}; "
