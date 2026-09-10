@@ -81,6 +81,14 @@ _LOCATIONS = {
                "out": os.path.join(_ROOT, "data", "ml-20m", "proc")},
     "ml-25m": {"raw": os.path.join(_ROOT, "data", "movielens", "ratings.csv"),
                "out": os.path.join(_ROOT, "data", "ml-25m", "proc")},
+    # SECOND DATASET (2026-09-10). Same recipe, same constants, same catalogue assertion. The raw
+    # file is emitted by src/instrument/a21_goodreads_rawform.py in MovieLens shape: movieId = arena
+    # book id, rating = the Goodreads 1-5 integer (Liang's rating > 3.5 means >= 4 on both scales).
+    # The arena is the 18,430 most-rated books, matched to ML-25M's arena SIZE, and every one clears
+    # CATALOG_MIN_RATINGS in the emitted file (min 122), so CATALOG_N_EXPECTED is unchanged at
+    # 18,430 and still guards against a corrupted raw file.
+    "goodreads": {"raw": os.path.join(_ROOT, "data", "goodreads_ucsd", "ratings.csv"),
+                  "out": os.path.join(_ROOT, "data", "goodreads_ucsd", "proc")},
 }
 # Module-level defaults preserved for backward compat (ml-20m); main() overrides from --data.
 DATA_DIR = os.path.join(_ROOT, "data", "ml-20m")
@@ -137,7 +145,7 @@ def numerize(tp, profile2id, show2id):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data", choices=["ml-20m", "ml-25m"], default="ml-20m",
+    ap.add_argument("--data", choices=["ml-20m", "ml-25m", "goodreads"], default="ml-20m",
                     help="which MovieLens dump to split (SAME recipe, different RAW/OUT)")
     args = ap.parse_args()
     RAW = _LOCATIONS[args.data]["raw"]
@@ -151,7 +159,7 @@ def main():
     raw = pd.read_csv(RAW)
     print(f"[liang] raw interactions: {len(raw):,}", flush=True)
 
-    if args.data == "ml-25m":
+    if args.data in ("ml-25m", "goodreads"):
         # AUTHOR-APPROVED deviation from min_sc=0 (2026-07-22): restrict to the project-wide
         # 18,430-item catalog (movies with >= CATALOG_MIN_RATINGS total ratings over ALL bands of the
         # full raw file -- the ml25m_arena.py catalog) BEFORE binarization. See module docstring.
@@ -162,7 +170,7 @@ def main():
                              f">={CATALOG_MIN_RATINGS} total ratings, expected {CATALOG_N_EXPECTED} "
                              f"(arena catalog). STOP -- verify the raw file before proceeding.")
         raw = raw[raw["movieId"].isin(catalog)]
-        print(f"[liang] ml-25m catalog restriction: {len(catalog):,} movies "
+        print(f"[liang] {args.data} catalog restriction: {len(catalog):,} movies "
               f"(>= {CATALOG_MIN_RATINGS} total ratings, all bands); "
               f"{len(raw):,} interactions kept", flush=True)
 
@@ -225,7 +233,7 @@ def main():
         "provenance": "dawenl/vae_cf VAE_ML20M_WWW2018.ipynb (bit-faithful recipe; "
                       + ("ML-20M raw" if args.data == "ml-20m" else "applied to ML-25M raw") + ")",
     }
-    if args.data == "ml-25m":
+    if args.data in ("ml-25m", "goodreads"):
         meta["catalog_restriction"] = (
             f"AUTHOR-APPROVED deviation from min_sc=0 (2026-07-22): raw pre-filtered to the "
             f"project-wide {CATALOG_N_EXPECTED}-item catalog (movies with >= {CATALOG_MIN_RATINGS} "
