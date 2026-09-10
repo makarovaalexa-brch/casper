@@ -1,0 +1,61 @@
+{
+  "dataset": "goodreads-ucsd-full",
+  "ml25m_reference": {
+    "foldin_items_per_user": 141.2,
+    "catalogue": 18359,
+    "item_floor": 20,
+    "item_answers_at_16": 3.11,
+    "concept_answers_at_16": 12.36
+  },
+  "interactions": 228648342,
+  "rated": 104551549,
+  "users_with_rating": 816371,
+  "books_with_rating": 2325541,
+  "depth": {
+    "mean": 128.06867098414813,
+    "median": 55.0,
+    "p10": 6.0,
+    "p25": 22.0,
+    "p75": 141.0,
+    "p90": 310.0
+  },
+  "users_at_floor": {
+    "5": 750325,
+    "10": 701889,
+    "20": 639453,
+    "50": 433629,
+    "100": 275502,
+    "200": 141841
+  },
+  "catalogue_at_floor": {
+    "5": {
+      "books": 1131565,
+      "share_of_ratings": 0.9773252139956339
+    },
+    "10": {
+      "books": 724641,
+      "share_of_ratings": 0.9515584891047382
+    },
+    "20": {
+      "books": 434531,
+      "share_of_ratings": 0.9138156527934369
+    },
+    "50": {
+      "books": 208248,
+      "share_of_ratings": 0.847597695563554
+    },
+    "100": {
+      "books": 115829,
+      "share_of_ratings": 0.7861144744971689
+    },
+    "200": {
+      "books": 62037,
+      "share_of_ratings": 0.7145030534172191
+    },
+    "500": {
+      "books": 25561,
+      "share_of_ratings": 0.6070707092058483
+    }
+  },
+  "seconds": 52.63695001602173
+}

@@ -77,8 +77,7 @@ def build_split():
     def emit(df, name):
         df = df.copy()
         df["sid"] = df.book_id.map(b2i)
-        df.rename(columns={"user_id": "uid"})[["user_id", "sid", "rating"]].to_csv(
-            os.path.join(PROC, name), index=False)
+        df[["user_id", "sid", "rating"]].to_csv(os.path.join(PROC, name), index=False)
 
     emit(r[r.user_id.isin(set(tr_u.tolist()))], "train.csv")
     for cohort, nm in ((va_u, "validation"), (te_u, "test")):
