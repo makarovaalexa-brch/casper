@@ -50,6 +50,21 @@ and runs the project's own scripts unmodified.
 | 7 | concept channel | `concept_train_v2.py` | pending |
 | 8 | **the gates** | `run_battery_phaseA.py` + `concept_identity_lift.py` | pending |
 
+## Parameterisation audit — COMPLETE 2026-09-10
+
+Every stage in the chain now follows `CASPER_DATASET`, and each was verified BOTH ways (unset gives
+byte-identical ML-25M paths):
+
+| module | how it resolves the dataset | verified |
+|---|---|---|
+| `scripts/baselines/liang_split.py` | own `_LOCATIONS` entry, additive | ran, 18,430 items / 140,768 users |
+| `src/instrument/train_tower_t2.py` | `_DATASETS` table keyed by `CASPER_DATASET` | both ways |
+| `src/instrument/concept_train_v2.py` | imports `PROC` from the tower module | both ways |
+| `src/instrument/run_battery_phaseA.py` | `PROC = T2.PROC`, `GENOME = T2.GENOME` | both ways |
+| `src/instrument/concept_identity_lift.py` | imports `run_battery_phaseA`, inherits | by construction |
+
+Nothing else in the instrument-and-gates chain hardcodes a dataset path. What remains is compute.
+
 ## Adaptations, each stated rather than silent
 
 - **Rating scale.** Goodreads integers 1--5 are left unchanged. Liang's `rating > 3.5` means `>= 4`
