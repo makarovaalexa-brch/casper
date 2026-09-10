@@ -59,8 +59,10 @@ from mask_contract import policy_b_pool
 assert not hasattr(T2, "load_answerer"), "retired answerer loader must not exist in the tower module"
 assert not hasattr(sys.modules[__name__], "load_answerer")
 
-PROC = os.path.join(_ROOT, "data", "ml-25m", "proc")
-GENOME = os.path.join(_ROOT, "data", "movielens", "genome-scores.csv")
+# Dataset paths follow CASPER_DATASET through the tower module's location table (default ml-25m,
+# so the certified ML-25M gate run is unchanged). These were hardcoded to ml-25m / movielens.
+PROC = T2.PROC
+GENOME = T2.GENOME
 # The CERTIFIED tower, 2026-08-02. Repointed 2026-08-08: this still named the i25 ep4 snapshot, two
 # towers behind. Everything downstream (premium_vs_k, the graded-premium figure, the sign probe)
 # inherits it, so a stale default here silently dated every R5 number in Chapter A.
