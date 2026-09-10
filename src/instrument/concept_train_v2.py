@@ -237,9 +237,11 @@ def main():
     mc = _member_counts(S)
     log(f"[cv2] member counts: min {mc.min():.0f} median {np.median(mc):.0f} max {mc.max():.0f}")
 
-    from train_tower_t2 import compute_head_mask
+    from train_tower_t2 import compute_head_mask, PROC as _PROC
     import metrics as _M
-    _tr = _M.load_train(S["ni"], os.path.join(_ROOT, "data", "ml-25m", "proc"))
+    # PROC follows CASPER_DATASET (train_tower_t2), so this is the ml-25m proc unless the second
+    # dataset is selected. Was hardcoded to data/ml-25m/proc.
+    _tr = _M.load_train(S["ni"], _PROC)
     head_mask, _ = compute_head_mask(_tr, S["ni"])
     N_VAL = 1500
     packs = build_val_interviews(S, a, mc, n_users=N_VAL) if not a.smoke else None
