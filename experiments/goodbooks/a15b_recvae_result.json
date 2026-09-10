@@ -1,0 +1,25 @@
+{
+  "dataset": "goodbooks-10k",
+  "model": "RecVAE",
+  "hidden": 600,
+  "latent": 200,
+  "best_val_full": 0.3325580656528473,
+  "test_full": 0.3251158893108368,
+  "test_tail": 0.24901969730854034,
+  "n_items": 10000,
+  "epochs_run": 40,
+  "checkpoint": "C:\\dev\\phd\\casper\\.cache\\goodbooks\\recvae_gb_h600_d200.pt",
+  "split_meta": {
+    "dataset": "goodbooks-10k",
+    "n_items": 10000,
+    "n_train_users": 43424,
+    "n_val_users": 5000,
+    "n_test_users": 5000,
+    "n_events_total": 5976479,
+    "seed": 98765,
+    "min_uc": 5,
+    "rating_gt": 3.5,
+    "test_prop": 0.2,
+    "provenance": "Liang strong-generalisation recipe applied to goodbooks-10k; full catalogue, no item truncation"
+  }
+}
