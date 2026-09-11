@@ -98,8 +98,16 @@ def main():
 
     # Context the author asked to see next to any pick. VAL numbers only -- the test comparison is a
     # separate, later step, and must not influence the choice above.
-    print("\n  references (val):  certified i25 val_full = 0.3451 | RecVAE own val = 0.3512")
-    print("                     step-0 of THIS run (untrained, RecVAE init) = 0.3510")
+    # These were hardcoded ML-25M numbers printed under a label claiming they describe "THIS
+    # run", which is wrong on any other dataset. Now keyed by CASPER_DATASET. Goodreads has no
+    # predecessor tower, and step-0 was never measured for it.
+    _REFS = {
+        "ml-25m": ("  references (val):  certified i25 val_full = 0.3451 | RecVAE own val = 0.3512\n"
+                   "                     step-0 of THIS run (untrained, RecVAE init) = 0.3510"),
+        "goodreads": ("  references (val):  RecVAE teacher own val = 0.3436 (a20_goodreads_recvae)\n"
+                      "                     no predecessor tower on this dataset; step-0 not measured"),
+    }
+    print("\n" + _REFS[os.environ.get("CASPER_DATASET", "ml-25m")])
 
     out = {"tag": a.tag, "rule": "argmax(sel + val_full)", "selected_epoch": win["epoch"],
            "selected_path": win["path"], "score": win["score"], "sel": win["sel"],
