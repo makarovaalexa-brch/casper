@@ -30,10 +30,16 @@ TAU_REF = 1.5
 LAM_VAL = 3.0
 C_NEG = 2.0
 W_VAL_TARGET_P90 = 0.15
+# These two are CACHED DATASET STATISTICS (per-item mean rating; the pre-registered answer
+# thresholds). They were keyed by filename alone, so a second dataset silently loaded ML-25M's --
+# caught here only because the vocabularies differ in size (18,430 vs 18,359). Now keyed by
+# CASPER_DATASET; ml-25m keeps its existing filenames so nothing is invalidated.
+_DS = os.environ.get("CASPER_DATASET", "ml-25m")
+_SFX = "" if _DS == "ml-25m" else f"_{_DS}"
 PREREG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..",
-                           ".cache", "instrument", "signed_answer_prereg.json")
+                           ".cache", "instrument", f"signed_answer_prereg{_SFX}.json")
 ITEM_MEAN_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..",
-                              ".cache", "instrument", "train_item_mean.npy")
+                              ".cache", "instrument", f"train_item_mean{_SFX}.npy")
 BAND_LIKE, BAND_MEH, BAND_DISLIKE, BAND_REFUSE = 0, 1, 2, 3
 BAND_NAMES = {0: "like", 1: "meh", 2: "dislike", 3: "refuse"}
 
