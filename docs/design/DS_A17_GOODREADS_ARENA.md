@@ -100,6 +100,33 @@ G-names: **G0 -> R1, G5 -> R2, G9 -> R3, G3a+G3b -> R4, G6 -> Controls, C2 -> Pr
   certified checkpoint existed, and must not be inherited.
 - **C-lite is excluded**: it ran on the i25 ep4 tower, not the certified pair.
 
+## WATCH ITEM (2026-09-11, epoch 5 of 60) — the empty-interview gap is wider than ML-25M's
+
+Both towers sit below the most-popular empty-set floor early on; the gap is the difference.
+
+| at epoch 5 | Goodreads | ML-25M |
+|---|---|---|
+| MostPop floor (measured on val/arm-A) | 0.0960 | 0.1326 |
+| tower k0 (empty interview) | **0.0785** (18% below floor) | 0.1313 (1% below floor) |
+| tower full profile | 0.3367 | 0.3459 |
+| selection metric | 0.1038 | 0.1348 |
+| monotone k0 < k1 | PASS | PASS |
+
+k0 is flat on both (ML-25M 0.1307 -> 0.1313 over five epochs; Goodreads 0.0806 -> 0.0785), so neither
+is *closing* the gap early. ML-25M simply started level with its floor and Goodreads starts well
+below it. The learned empty-interview prior comes from the k=0 curriculum bucket, which is 5% of the
+mixture, so it is expected to move late if at all. **Not a failure at epoch 5 and the gates are
+reporting-only, but it is the first genuine divergence from ML-25M's trajectory and is being
+tracked.** If it is still ~18% below at convergence, the honest reading is that on Goodreads the
+tower's zero-answer prior is worse than popularity, which would need saying plainly.
+
+⚠ **Also noted, and it does not affect behaviour**: `CERT_VAL_FULL = 0.3451` in `train_i26.py` is
+ML-25M's certified TOWER validation score, used to derive the full-profile floor (0.3451 - 0.0015 =
+0.3436). Goodreads has no predecessor tower, so the correct reference there is its own RecVAE
+teacher's validation score — which is **0.3436, numerically identical by coincidence**. The floor is
+therefore right by accident rather than by construction. Left unchanged mid-run so the log stays
+internally comparable; flagged here so nobody later reads it as a principled reference.
+
 ## Acceptance and STOP conditions, registered before the numbers
 
 The author's instruction is to **stop and report on negative results**, not to push through. Stop if:
