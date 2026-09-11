@@ -127,6 +127,44 @@ teacher's validation score — which is **0.3436, numerically identical by coinc
 therefore right by accident rather than by construction. Left unchanged mid-run so the log stays
 internally comparable; flagged here so nobody later reads it as a principled reference.
 
+## WATCH ITEM UPDATE (epoch 21 of 60) — one gate is mis-referenced, the other is real
+
+Both training gates plateaued by ~epoch 17. Reading them correctly matters, and my epoch-5 framing
+was too pessimistic on one and not specific enough on the other.
+
+**G-FULL is comparing against the WRONG dataset's tower, and on the right reference Goodreads matches
+ML-25M.** The 0.3436 floor derives from `CERT_VAL_FULL = 0.3451`, which is *ML-25M's certified tower*
+validation score. The meaningful question is how each tower sits against **its own RecVAE teacher**:
+
+| tower vs its own teacher (validation) | Goodreads | ML-25M |
+|---|---|---|
+| RecVAE teacher | 0.3436 | 0.3512 |
+| tower | ~0.3369 | ~0.3451 |
+| **difference** | **-0.0067** | **-0.0061** |
+
+So both towers sit slightly *below* their teacher on the full profile by a comparable margin — which
+is expected, since the tower trades a little full-profile strength for interview ability. **This is
+NOT stop condition 2 firing.** ML-25M's own test numbers show the same shape (tower 0.3496 vs RecVAE
+0.3540). The gate only looks failed because the floor is another dataset's number.
+
+**G-EMPTY is a genuine difference and it has plateaued.**
+
+| empty interview vs most-popular | Goodreads | ML-25M |
+|---|---|---|
+| MostPop floor | 0.0960 | 0.1326 |
+| tower k0 | 0.0877 (plateaued ~ep17) | 0.1312 |
+| gap | **-8.6%** | -1.1% |
+
+k0 rose 0.0782 -> 0.0885 between epochs 4 and 16, then flattened and drifted slightly down. It is
+unlikely to reach the floor. **The honest reading, if this holds: on Goodreads the tower's zero-answer
+prior is meaningfully worse than simply recommending popular books, where on ML-25M it was level.**
+
+**Why this is a caveat and not a blocker for the elicitation result.** Every arm in the downstream
+comparison shares the same consumer, so the *contrasts* remain internally valid; what changes is the
+answer-free reference the contrasts are measured from. It must be reported, not buried, and the
+cold-start floor on Goodreads should be quoted as most-popular rather than as the tower's empty
+interview if the latter is weaker.
+
 ## Acceptance and STOP conditions, registered before the numbers
 
 The author's instruction is to **stop and report on negative results**, not to push through. Stop if:
