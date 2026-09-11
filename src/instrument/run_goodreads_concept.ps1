@@ -4,8 +4,12 @@
 # script: cv3 was produced by concept_train_v2.py with a non-default mixture, recoverable only from
 # its own training log, experiments/instrument/cv3_train.out:1 --
 #     [cv3] mixture interview=0.55 dense=0.3 kc0=0.05 kc1=0.1
-# `--mix` takes p_broad,p_dense,p_interview,p_kc0,p_kc1, so that line is 0,0.3,0.55,0.05,0.1
-# (broad = 0, the four stated weights summing to 1.0). Everything else is concept_train_v2's own
+# `--mix` for THIS script takes FOUR weights: p_interview,p_dense,p_kc0,p_kc1 -> 0.55,0.3,0.05,0.1.
+# NOTE the argparse help string in concept_train_v2.py is STALE: it documents five weights
+# ("p_broad,p_dense,p_interview,p_kc0,p_kc1"), which is the TOWER's interview_curriculum.set_mixture
+# signature, not the concept channel's concept_curriculum_v2.set_mixture(p_interview, p_dense,
+# p_kc0, p_kc1). Passing five raises TypeError -- which is how this was caught. Everything else is
+# concept_train_v2's own
 # default: hidden 256, epochs 12, steps_per_epoch 400, batch 256, lr 1e-3, seed 98765, keep_meh off.
 # The certified checkpoint was epoch 8 of that 12-epoch run.
 #
@@ -35,7 +39,7 @@ $p = Start-Process -FilePath "python" -ArgumentList @(
         "-u", "src/instrument/concept_train_v2.py",
         "--tag", "cvg",
         "--snapshot", $snap,
-        "--mix", "0,0.3,0.55,0.05,0.1"
+        "--mix", "0.55,0.3,0.05,0.1"
      ) -RedirectStandardOutput "experiments\goodreads\cvg_train.out" `
        -RedirectStandardError "experiments\goodreads\cvg_train.err" -WindowStyle Hidden -PassThru
 "[launch] PID=$($p.Id)  ->  experiments\goodreads\cvg_train.out"
