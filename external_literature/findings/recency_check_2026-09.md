@@ -61,3 +61,55 @@ again as an example under the weak-comparator observation.
 A full 2024–2026 venue sweep (SIGIR, RecSys, WWW, CIKM, KDD, ECIR, UMAP) has **not** been done. This
 pass targeted the highest-risk shape only. Until that sweep runs, the honest internal statement is
 "no scoop found on the attribute-tree axis", not "there is nothing newer".
+
+---
+
+# SECOND PASS (same day): the sweep was NOT complete. Three more, one MATERIAL.
+
+The first pass searched only the attribute-tree axis and concluded "one hit". That was wrong. Four
+further searches on the CRS / NDCG-in-the-selector axis turned up the following.
+
+## ⛔ MATERIAL — a published greedy NDCG attribute selector, three years old, uncited by us
+
+**Lin, Zhu, Wang & Caverlee, "Enhancing User Personalization in Conversational Recommenders",
+arXiv:2302.06656, TheWebConf (WWW) 2023.**
+
+From the abstract, verbatim: *"(i) a **greedy NDCG attribute selector**, to enhance user
+personalization in the interactive preference elicitation process by prioritizing attributes that most
+effectively represent the actual preference space of the user"*.
+
+This overlaps the core idea of C2 — put NDCG inside the question-selection rule — and it is
+**attribute-based**, so it touches C1 as well. It is not in our bibliography. A reviewer who knows this
+paper and sees our claim that *"Unoccupied is the conjunction"* and *"exactly one rule optimises the
+reported metric"* would have grounds to reject.
+
+**What almost certainly still distinguishes us, NOT YET VERIFIED from full text:**
+
+- their setting is **multi-round conversational recommendation** with a multi-groundtruth target item,
+  not cold-start onboarding scored by a held-out ranking metric after a fixed question budget;
+- their NDCG is, on the face of it, an **expected/estimated** quantity over the model's current belief
+  within a session, where ours is a **measured cohort-mean held-out** NDCG@10 obtained by folding real
+  answers through a frozen recommender and ranking the full catalogue;
+- their comparators are **other conversational recommenders**, not a metric-optimised static order.
+
+⚠ **The deciding fact — measured versus estimated NDCG — could not be read from the abstract and MUST be
+checked in the full text before any novelty sentence is written.** If their NDCG is also measured and
+held-out, our conjunction claim needs rewriting, not just narrowing.
+
+## Supporting, not threatening
+
+- **Harne, Modani, Mahapatra & Agarwal, "Dialogue to Discovery: Attribute-Aware Preference Elicitation
+  for Conversational Product Search Assistants", arXiv:2606.24194, 23 Jun 2026.** Attribute elicitation
+  for target-finding product search. Criterion is **uncertainty x entropy** (APU x ACE) — another
+  surrogate. Catalogues of ~2,000 items, LLM baselines (BM25, SBERT, zero-shot LLM). Different problem,
+  and further evidence that attribute selection is still driven by surrogates. Good citation for C3.
+- **"Minimizing Live Experiments in Recommender Systems: User Simulation to Evaluate Preference
+  Elicitation Policies", arXiv:2409.17436 (2024).** Evaluation methodology for elicitation policies;
+  relevant to our contract framing.
+- **Soft-attribute elicitation** (arXiv:2311.02085; concept activation vectors, arXiv:2202.02830).
+  Adjacent to the concept channel; not yet read.
+
+## Status
+
+The sweep is **still not complete** — these two passes covered the attribute-tree and CRS/NDCG axes.
+Not yet covered: bandit/active-learning elicitation 2024–2026, LLM elicitation, UMAP/CIKM/ECIR venues.
