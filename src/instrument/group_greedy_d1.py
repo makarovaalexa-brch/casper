@@ -50,7 +50,10 @@ from strategy_channel_suite import (log, build_greedy_env, set_active_rows, gree
 from i26_encoder import LIKE_MIN_LEVEL
 
 LABEL = "groupgreedy_d1"
-OUTDIR = os.path.join(_ROOT, "experiments", "battery")
+# Per-dataset results dir, single source of truth (run_battery_phaseA keys it off
+# CASPER_DATASET). Was hardcoded here, so a Goodreads run would have written on top of the
+# certified ML-25M tree/greedy artifacts -- HARD RULE 11e.
+from run_battery_phaseA import OUTDIR                  # noqa: E402
 GLOBAL_JSON = os.path.join(OUTDIR, "greedy_static_i26c.json")
 GROUPS = ("like", "dislike", "noanswer")
 

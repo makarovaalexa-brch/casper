@@ -54,7 +54,10 @@ from strategy_channel_suite import (log, build_greedy_env, set_active_rows, genv
 from run_battery_phaseA import bootstrap_ci
 from ndcg_tree import split_rows, leak_assert, BRANCHES
 
-OUTDIR = os.path.join(_ROOT, "experiments", "battery")
+# Per-dataset results dir, single source of truth (run_battery_phaseA keys it off
+# CASPER_DATASET). Was hardcoded here, so a Goodreads run would have written on top of the
+# certified ML-25M tree/greedy artifacts -- HARD RULE 11e.
+from run_battery_phaseA import OUTDIR                  # noqa: E402
 TREE_JSON = os.path.join(OUTDIR, "ndcgtree.json")
 VAL16_JSON = os.path.join(OUTDIR, "ndcgtree16.json")
 VAL16_NPZ = os.path.join(OUTDIR, "ndcgtree16_per_user.npz")

@@ -78,7 +78,10 @@ from group_greedy_genre import (load_item_genres, partition_by_genre, leak_asser
                                 UNIQUE_SID, SMALL_GROUP, NONE_GROUP, GENEROUS)
 
 LABEL = "groupgreedy_genre15_TEST"
-OUTDIR = os.path.join(_ROOT, "experiments", "battery")
+# Per-dataset results dir, single source of truth (run_battery_phaseA keys it off
+# CASPER_DATASET). Was hardcoded here, so a Goodreads run would have written on top of the
+# certified ML-25M tree/greedy artifacts -- HARD RULE 11e.
+from run_battery_phaseA import OUTDIR                  # noqa: E402
 STAGE1_JSON = os.path.join(OUTDIR, "groupgreedy_genre15.json")
 N_BOOT = 10000
 BOOT_SEED = 98765

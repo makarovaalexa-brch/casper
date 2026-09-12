@@ -1174,8 +1174,10 @@ def greedy_main(args):
         "never trained on). The certified i26 tower folds an asked-but-unrated item as a native "
         "UNSEEN exposure token, which this path always does.")
     sfx = ("" if args.objective == "full" else f"_{args.objective}") + ("_SMOKE" if SMOKE else "")
-    GRJSON = os.path.join(_ROOT, "experiments", "battery", f"greedy_static_i26c{sfx}.json")
-    GRPNG = os.path.join(_ROOT, "experiments", "battery", f"greedy_static_i26c{sfx}.png")
+    # Was hardcoded to experiments/battery: a --greedy run on Goodreads would have overwritten
+    # ML-25M's certified greedy_static_i26c.json. OUTDIR is keyed by CASPER_DATASET.
+    GRJSON = os.path.join(OUTDIR, f"greedy_static_i26c{sfx}.json")
+    GRPNG = os.path.join(OUTDIR, f"greedy_static_i26c{sfx}.png")
     if SMOKE:
         log("#" * 100)
         log(f"# SMOKE MODE: {args.smoke_users} users per cohort. Pipeline check ONLY -- these numbers "

@@ -61,7 +61,10 @@ from strategy_channel_suite import (log, build_greedy_env, set_active_rows, gree
 from i26_encoder import LIKE_MIN_LEVEL
 
 LABEL = "groupgreedy_genre16"
-OUTDIR = os.path.join(_ROOT, "experiments", "battery")
+# Per-dataset results dir, single source of truth (run_battery_phaseA keys it off
+# CASPER_DATASET). Was hardcoded here, so a Goodreads run would have written on top of the
+# certified ML-25M tree/greedy artifacts -- HARD RULE 11e.
+from run_battery_phaseA import OUTDIR                  # noqa: E402
 GLOBAL_JSON = os.path.join(OUTDIR, "greedy_static_i26c.json")
 MOVIES_CSV = os.path.join(_ROOT, "data", "movielens", "movies.csv")     # the ML-25M raw movies file
 UNIQUE_SID = os.path.join(_ROOT, "data", "ml-25m", "proc", "unique_sid.txt")

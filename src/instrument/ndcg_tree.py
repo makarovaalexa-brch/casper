@@ -120,7 +120,10 @@ from i26_encoder import LIKE_MIN_LEVEL
 from group_greedy_genre import load_item_genres, favourite_genre
 
 LABEL = "ndcgtree"
-OUTDIR = os.path.join(_ROOT, "experiments", "battery")
+# Per-dataset results dir, single source of truth (run_battery_phaseA keys it off
+# CASPER_DATASET). Was hardcoded here, so a Goodreads run would have written on top of the
+# certified ML-25M tree/greedy artifacts -- HARD RULE 11e.
+from run_battery_phaseA import OUTDIR                  # noqa: E402
 GLOBAL_JSON = os.path.join(OUTDIR, "greedy_static_i26c.json")
 
 MIN_LEAF = 200
@@ -280,6 +283,8 @@ def split_rows(E, rows, q):
 def genre_face_validity(E, rows, gen, top=4):
     """Face-validity read only: the most common favourite genre among a node's users, off their LIKED
     fold-in items (targets excluded by construction). Descriptive; nothing is selected on it."""
+    if gen is None:                                      # no genre source for this dataset
+        return []
     cnt = {}
     lvl = E["lvl"]
     for r in rows:
@@ -603,7 +608,14 @@ def main():
         f"target). "
         f"TEST IS NOT BUILT AND NOT TOUCHED.")
     leak_assert(E, rows_all, args.split)
-    gen, _gvocab = load_item_genres(E["ctx"].ni)
+    # Genres are used ONLY by genre_face_validity, which is explicitly descriptive ("nothing is
+    # selected on it"). The loader hard-asserts MovieLens' movies.csv, which Goodreads has no
+    # counterpart for, so make the read optional instead of letting it block the tree.
+    try:
+        gen, _gvocab = load_item_genres(E["ctx"].ni)
+    except (AssertionError, FileNotFoundError) as _e:
+        log(f"[genre] face-validity DISABLED (no genre source for this dataset): {_e}")
+        gen = None
 
     pool_all, item_pool, conc_pool = build_pool(E, args.n_items, args.n_concepts)
     pool = list(pool_all)

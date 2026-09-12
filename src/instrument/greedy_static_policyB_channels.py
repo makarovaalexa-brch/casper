@@ -66,7 +66,10 @@ from strategy_channel_suite import (log, build_greedy_env, set_active_rows, gree
                                     celf_heap_sig, CERT_TOWER, CERT_CONC)
 from ndcg_tree import build_pool, leak_assert, read_global, RULER_NOTE
 
-OUTDIR = os.path.join(_ROOT, "experiments", "battery")
+# Per-dataset results dir, single source of truth (run_battery_phaseA keys it off
+# CASPER_DATASET). Was hardcoded here, so a Goodreads run would have written on top of the
+# certified ML-25M tree/greedy artifacts -- HARD RULE 11e.
+from run_battery_phaseA import OUTDIR                  # noqa: E402
 TREE_HEAPS = os.path.join(OUTDIR, "ndcgtree_heaps")
 ROOT_HEAP = os.path.join(TREE_HEAPS, "node_root.json")      # VALIDATION only -- see transplant_seed
 GLOBAL_JSON = os.path.join(OUTDIR, "greedy_static_i26c.json")
