@@ -1,3 +1,8 @@
+> **SUPERSEDED IN PART, 2026-09-12.** The negative result below is RETRACTED: it was an artifact
+> of the in-training monitor (eval-time member-drop). See `docs/results/A22_CONCEPT_MONITOR_CORRECTED.md`.
+> Everything about the arena, split, teacher, tower and the four portability bugs stands.
+> One correction to the table below: ML-25M m1 is **0.1772**, not 0.1774 (cv3_train.out line 41).
+
 # A17 — the instrument ported to Goodreads: tower OK, concept channel FAILS (2026-09-12)
 
 **Status: STOPPED FOR AUTHOR DECISION.** Design `docs/design/DS_A17_GOODREADS_ARENA.md`.
