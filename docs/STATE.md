@@ -25,6 +25,22 @@ Results: `docs/results/A24_RESELECTED_DIAGNOSTICS.md` (current) ·
 Design `docs/design/DS_A22_CONCEPT_MONITOR_AND_ASKSET.md`. Instruments `a22_concept_curve_paired.py`,
 `a23_reselect_concept_epoch.py`, `run_a24_reselected_diagnostics.sh`.
 
+### ★ A26 (2026-09-12): ELICITATION ON GOODREADS — the concept channel is STRONGER there
+
+Lift over the no-question intercept at q=16 (intercepts ML 0.1279 / GR 0.0889):
+
+| arm | ML-25M full/tail | Goodreads full/tail |
+|---|---|---|
+| items-pop | +0.0668 / +0.0388 | +0.0434 / +0.0077 |
+| conc-member-mass | +0.0099 / +0.0132 | **+0.0314 / +0.0211** |
+| conc-random (floor) | +0.0146 / +0.0188 | +0.0071 / +0.0067 |
+
+Concept SELECTION matters on Goodreads and does not on ML-25M (there, member-mass is *worse* than
+random). Random concepts collect 0.95 answers per 16 asks on GR vs 6.46 on ML. **Rank the bank by
+answerability; never truncate it.** Tail ordering flips: concepts beat items on books.
+Full: `docs/results/A26_GOODREADS_ELICITATION.md`. Goodreads outputs now live in
+`experiments/battery_goodreads/` (they previously would have overwritten ML-25M's).
+
 ### Next, in priority order
 1. **Paper B's +0.01430 portability** — the real question, untested. Its harness has no member-drop so
    the monitor defect does not touch it, but the answers-per-question ledger for concepts vs items on
