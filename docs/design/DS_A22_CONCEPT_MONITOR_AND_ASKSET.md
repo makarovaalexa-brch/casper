@@ -106,3 +106,33 @@ R-rate and ML-25M under the shipped policy would be exactly the asymmetry this s
 Paper and chapter edits (author instruction). The Phase-A gate battery. Any change to TAU_REF, C_NEG,
 w_val, the +-1 clip, the fold cap, or the NPMI form — the sensitivity sweep shows none of them moves the
 answer-rate story, and any of them chosen after seeing this curve is untestable tuning.
+
+## Addendum — A23, re-selecting the epoch (added 2026-09-12, after the ask-set arm resolved)
+
+The ask-set arm is closed: broad, `topN`, and the middle band all land in the same place, and the
+equal-ANSWER test (Goodreads m=22 delivers ML-25M's m=8 answer count and buys −0.0001) refutes the
+answer-rate story. What remains is a selection question, not a training one.
+
+**Both certified concept checkpoints were chosen by the bent ruler.** The shipped SEL is the mean
+validation NDCG at m in (1,4,8) measured with eval-time member-drop and unpaired levels, so cv3 ep4 and
+cvg ep12 were both picked on it. **This needs no retraining to fix**: the monitor is eval-only and feeds
+no gradients, so every epoch's checkpoint on disk is untouched by the defect. `a23_reselect_concept_epoch.py`
+re-scores all 12 of each on the corrected protocol, reusing packs across epochs (they do not depend on
+the net).
+
+Two criteria, reported together because they answer different questions:
+
+- `sel_corrected` — mean NDCG at m in (1,4,8), paired and drop-free. The direct analogue of the shipped
+  SEL. **On a dataset where the channel adds nothing this mostly tracks the m0 intercept**, i.e. it
+  selects on the tower's state rather than on the concept net. Not sufficient alone.
+- `fold_mean` — mean paired fold effect at m in (1,4,8). What the concept net adds with the context held
+  fixed; the thing the channel exists to maximise.
+
+**Pre-registered reading.** If the two criteria disagree, `fold_mean` is the concept channel's own
+criterion and `sel_corrected` is the tower's — say which is being reported and why. If Goodreads'
+best-by-`fold_mean` epoch still buys ≈ 0, the conclusion stands at the properly selected checkpoint and
+is no longer attributable to a selection artifact. If some epoch buys materially more, the Goodreads
+conclusion is **provisional** and that epoch becomes the one to re-run the ask-set arm against.
+
+The full retrain (~68 min) stays parked for the author: its prior is low, since the dense bucket already
+supplies 4.4 answered concepts per Goodreads training example and the answers buy nothing when present.
