@@ -66,7 +66,7 @@ def ask_set(policy, S, mc, rng, m):
     raise ValueError(policy)
 
 
-def paired_user(u, rng, S, mc, ms, drop, policy, scramble):
+def paired_user(u, rng, S, mc, ms, drop, policy, scramble, no_refusals=False):
     """ONE target draw per user, reused at every m. Returns {m: pack row} or None.
 
     Mirrors concept_train_v2._one_val_example except that the target draw and the residual pool are
@@ -122,15 +122,24 @@ def paired_user(u, rng, S, mc, ms, drop, policy, scramble):
         if len(tgt) == 0:
             return None
         cid_out = [int(c) for c in cids]
+        if no_refusals and m:
+            # Feed ONLY the concepts the user actually answered. On Goodreads an 8-question interview
+            # delivers ~2.2 answers and ~5.8 REFUSAL tokens (ML-25M: ~6.0 and ~2.0), and refusals are
+            # fed to the net (use_refusal=True). If the anti-accumulation is the refusal tokens rather
+            # than the answers, the decay must disappear here.
+            k_ok = [j for j in range(len(cid_out)) if crefs[j] == 0.0]
+            cid_out = [cid_out[j] for j in k_ok]
+            cvals = [cvals[j] for j in k_ok]
+            crefs = [crefs[j] for j in k_ok]
         if scramble and m:
             # EXISTENTIAL CONTROL (G3): keep the values and refusal flags, replace WHICH concept they
             # are attached to. A fold that is concept-identity-sensitive must lose its lift here.
-            cid_out = [int(c) for c in rng.choice(len(S["tags"]), size=len(cids), replace=False)]
+            cid_out = [int(c) for c in rng.choice(len(S["tags"]), size=len(cid_out), replace=False)]
         out[m] = (in_s, in_l, cid_out, [float(v) for v in cvals], [float(x) for x in crefs], tgt)
     return out
 
 
-def build_paired(S, mc, ms, n_users, seed, drop, policy, scramble):
+def build_paired(S, mc, ms, n_users, seed, drop, policy, scramble, no_refusals=False):
     """Paired packs over the SAME held-out users, one independent rng per user."""
     val_users = S["users"][-n_users:]
     master = np.random.default_rng(seed)
@@ -138,7 +147,8 @@ def build_paired(S, mc, ms, n_users, seed, drop, policy, scramble):
     packs = {m: [] for m in ms}
     kept = 0
     for i, u in enumerate(val_users):
-        r = paired_user(u, np.random.default_rng(int(seeds[i])), S, mc, ms, drop, policy, scramble)
+        r = paired_user(u, np.random.default_rng(int(seeds[i])), S, mc, ms, drop, policy, scramble,
+                        no_refusals)
         if r is None:
             continue
         kept += 1
@@ -197,6 +207,8 @@ def main():
     ap.add_argument("--seeds", type=int, default=5)
     ap.add_argument("--ask", default="broad", help="broad | topN:<N>")
     ap.add_argument("--skip_g1", action="store_true")
+    ap.add_argument("--no_refusals", action="store_true",
+                    help="feed ONLY answered concepts; isolates the refusal tokens' contribution")
     a = ap.parse_args()
     ms = (0, 1, 4, 8)
 
@@ -243,7 +255,7 @@ def main():
             per_seed = []
             for si in range(a.seeds):
                 seed = 4242 + 1000 * si
-                packs, kept = build_paired(S, mc, ms, N_VAL, seed, drop, a.ask, scr)
+                packs, kept = build_paired(S, mc, ms, N_VAL, seed, drop, a.ask, scr, a.no_refusals)
                 cell = {}
                 for m in ms:
                     f_on, t_on = ndcg_rows(net, S, packs[m], head_mask, strip=False)
@@ -272,7 +284,8 @@ def main():
                 "+-" + format(agg[str(m)]["full_sd"], ".4f") for m in ms))
 
     os.makedirs(OUT, exist_ok=True)
-    p = os.path.join(OUT, "a22_" + a.tag + "_" + a.ask.replace(":", "") + ".json")
+    p = os.path.join(OUT, "a22_" + a.tag + "_" + a.ask.replace(":", "") +
+                     ("_norefuse" if a.no_refusals else "") + ".json")
     json.dump(res, open(p, "w"), indent=2)
     log("[a22] -> " + p)
 
