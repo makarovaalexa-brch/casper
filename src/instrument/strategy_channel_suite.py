@@ -1377,10 +1377,21 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--snapshot", default=PA.SNAP_DEFAULT)
-    ap.add_argument("--sclite_ckpt", default=os.path.join(_ROOT, ".cache", "instrument",
-                                                          "cfold_signed_best.pt"))
-    ap.add_argument("--scfull_ckpt", default=os.path.join(_ROOT, ".cache", "instrument",
-                                                          "cfull_signed_best.pt"))
+    # The sclite rung's concept fold. ml-25m keeps cfold_signed_best.pt exactly. goodreads gets
+    # its own certified net -- the ml-25m file carries a 1,031-concept embedding and Goodreads has
+    # 2,408, so it was being loaded with the CHECKPOINT's bank rather than the DATASET's, which
+    # silently reinterprets every concept id.
+    ap.add_argument("--sclite_ckpt", default=os.path.join(
+        _ROOT, ".cache", "instrument",
+        {"ml-25m": "cfold_signed_best.pt", "goodreads": "cvg_ep10.pt"}[_DS]))
+    # The scfull rung's full signed encoder. cfull_signed_best.pt is pure ml-25m (18,359 items,
+    # 1,031 concepts) and would crash a Goodreads run mid-flight on an item_emb size mismatch.
+    # There is no Goodreads counterpart -- training one is a separate job -- so point Goodreads at
+    # a name that does not exist and let the os.path.exists guard below skip the rung cleanly.
+    ap.add_argument("--scfull_ckpt", default=os.path.join(
+        _ROOT, ".cache", "instrument",
+        {"ml-25m": "cfull_signed_best.pt",
+         "goodreads": "cfull_signed_best_goodreads.pt"}[_DS]))
     ap.add_argument("--scfull", action="store_true", default=True)
     ap.add_argument("--no_scfull", dest="scfull", action="store_false")
     ap.add_argument("--full_threads", action="store_true")
@@ -1482,7 +1493,19 @@ def main():
         if name == "sclite":
             from concept_fold import ConceptFoldNet
             blob = torch.load(args.sclite_ckpt, map_location="cpu")
-            net = ConceptFoldNet(len(blob["tags"]), d=ctx.d, h=blob["hidden"])
+            # BANK-SIZE GUARD. This used to size the net from len(blob["tags"]) -- the
+            # CHECKPOINT's bank -- so an ml-25m fold (1,031 concepts) loaded happily inside a
+            # Goodreads run (2,408) and every concept id meant something else. Size from the
+            # DATASET and refuse anything that disagrees. Checkpoints written by
+            # concept_train_v2 carry no "tags" list, so fall back to the embedding shape.
+            _nc_ck = (len(blob["tags"]) if "tags" in blob
+                      else int(blob["net"]["emb.weight"].shape[0]))
+            _nc_ds = len(sh["tags"])
+            assert _nc_ck == _nc_ds, (
+                f"concept-fold bank mismatch: {os.path.basename(args.sclite_ckpt)} has "
+                f"{_nc_ck} concepts, the {_DS} bank has {_nc_ds}")
+            net = ConceptFoldNet(_nc_ds, d=ctx.d, h=blob["hidden"],
+                                 use_refusal=bool(blob.get("use_refusal", False)))
             net.load_state_dict(blob["net"]); net.eval()
             return Rung(name, ctx, sh, clite_net=net, val_source="signed")
         blob = torch.load(args.scfull_ckpt, map_location="cpu")
