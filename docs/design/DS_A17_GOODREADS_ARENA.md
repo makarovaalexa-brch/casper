@@ -165,6 +165,45 @@ answer-free reference the contrasts are measured from. It must be reported, not 
 cold-start floor on Goodreads should be quoted as most-popular rather than as the tower's empty
 interview if the latter is weaker.
 
+## ⛔ NEGATIVE RESULT (2026-09-12, concept channel epoch 4 of 12) — the concept curve RUNS BACKWARDS
+
+Reported immediately per the author's instruction ("if you start getting netaive results stop and
+tell me"). The run is being allowed to finish (8 epochs, ~45 min) because a complete curve is a
+better object to judge than a partial one, not because the signal is ambiguous.
+
+**On ML-25M, asking more concept questions helps. On Goodreads, it hurts.** Same script, same
+mixture, same budget ladder, validation cohort, m<k> = NDCG@10 after k concept questions:
+
+| epoch 4 | m0 (none) | m1 | m4 | m8 | direction |
+|---|---|---|---|---|---|
+| **ML-25M (cv3)** | 0.1811 | 0.1774 | 0.1856 | **0.1916** | rises with more answers |
+| **Goodreads (cvg)** | 0.1877 | 0.1870 | 0.1798 | **0.1740** | **falls with more answers** |
+
+And the Goodreads m8 is getting *worse* across epochs, not better: 0.1800, 0.1778, 0.1776, 0.1740 at
+epochs 1-4. ML-25M's rose over the same span (0.1824, 0.1873, 0.1870, 0.1916). So this is not
+"early" — the trend has the wrong sign.
+
+**What it would mean if it holds.** The concept channel is the mechanism behind the *larger* of Paper
+B's two results (+0.01430 from enlarging the bank, against +0.01035 from conditioning). If concept
+answers do not help on Goodreads, that result does not port, and the honest statement is that the
+bank finding is MovieLens-specific rather than general.
+
+**Candidate explanations, none yet tested, in rough order of how cheaply they can be checked:**
+1. **The shelf-derived concepts carry less taste signal than Tag Genome tags.** Shelves are
+   user-authored and noisy; the A19 junk filter removed format/structural/list shelves but cannot fix
+   a vocabulary that is simply coarser.
+2. **The answer values are miscalibrated.** Note `m0` tail differs hugely between datasets
+   (0.0104 ML-25M vs 0.0679 Goodreads), and the Goodreads item-mean/threshold statistics were only
+   just re-derived. The signed answer value (SEL/NPMI) may be on a different scale here.
+3. **The tower's weaker zero-answer prior** (the earlier watch item: 8.6% below most-popular) may
+   interact — a fold that starts from a poor prior has further to climb.
+4. **Genuine**: books may simply be less separable by broad shelf-level attributes than films are by
+   genome tags.
+
+**This does NOT invalidate the item-channel work.** The tower, the split and the arena are sound and
+their gates are still to be run. What is in question is specifically whether the *concept* half of
+the paper travels.
+
 ## Acceptance and STOP conditions, registered before the numbers
 
 The author's instruction is to **stop and report on negative results**, not to push through. Stop if:
