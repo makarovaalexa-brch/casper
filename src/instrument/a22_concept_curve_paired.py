@@ -214,10 +214,13 @@ def main():
     ap.add_argument("--seeds", type=int, default=5)
     ap.add_argument("--ask", default="broad", help="broad | topN:<N>")
     ap.add_argument("--skip_g1", action="store_true")
+    # Datasets with different answer rates must also be compared at equal ANSWERS, not only at
+    # equal questions: Goodreads collects ~0.27 answers per broad ask, ML-25M ~0.75.
+    ap.add_argument("--ms", default="0,1,4,8", help="asked-concept levels, comma separated")
     ap.add_argument("--no_refusals", action="store_true",
                     help="feed ONLY answered concepts; isolates the refusal tokens' contribution")
     a = ap.parse_args()
-    ms = (0, 1, 4, 8)
+    ms = tuple(int(x) for x in a.ms.split(","))
 
     import metrics as _M
     from train_tower_t2 import compute_head_mask, PROC as _PROC
@@ -243,10 +246,12 @@ def main():
         "concept_train_v2:248 removes from training")
 
     res = {"tag": a.tag, "ckpt": os.path.basename(a.ckpt), "snapshot": os.path.basename(a.snapshot),
-           "epoch": blob.get("epoch"), "ask": a.ask, "n_concepts": len(S["tags"]), "cells": {}}
+           "epoch": blob.get("epoch"), "ask": a.ask, "ms": list(ms),
+           "n_concepts": len(S["tags"]), "cells": {}}
 
     # ---- G1 REPRODUCTION: call the SHIPPED builder, seed 4242, and match the training log.
-    if not a.skip_g1:
+    # G1 compares against the SHIPPED monitor, which only ever built levels 0,1,4,8.
+    if not a.skip_g1 and ms == (0, 1, 4, 8):
         t0 = time.time()
         packs = CT.build_val_interviews(S, argparse.Namespace(), mc, n_users=N_VAL, seed=4242)
         v = CT.eval_val(net, S, packs, head_mask)
@@ -292,7 +297,8 @@ def main():
 
     os.makedirs(OUT, exist_ok=True)
     p = os.path.join(OUT, "a22_" + a.tag + "_" + a.ask.replace(":", "") +
-                     ("_norefuse" if a.no_refusals else "") + ".json")
+                     ("_norefuse" if a.no_refusals else "") +
+                     ("" if a.ms == "0,1,4,8" else "_ms" + a.ms.replace(",", "-")) + ".json")
     json.dump(res, open(p, "w"), indent=2)
     log("[a22] -> " + p)
 
