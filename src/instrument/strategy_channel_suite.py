@@ -382,9 +382,24 @@ def greedy_static_seq(rung, rows, pool, L, fold_refusals=False, refuse_level=4, 
 #     liked fold-in). Every rated fold-in-side item is masked for every arm, ask-independent; an
 #     asked item is never removed from the ranking because it was asked. See genv_eval.
 # LEGACY code above is untouched so greedy_polish.py and the recorded Jul-27 numbers stay readable.
-CERT_TOWER = os.path.join(_ROOT, "models", "i26c_ep31", "t2i26c_ep31.pt")
-CERT_CONC = os.path.join(_ROOT, "models", "i26c_ep31", "concept_cv3_ep08.pt")
-CONCSTATS = os.path.join(_ROOT, ".cache", "instrument", "signed_train_concstats.npz")
+# Dataset selection (2026-09-12): follows CASPER_DATASET, default ml-25m so the certified ML-25M
+# path is unchanged. The concept STATS are per-dataset quantities -- sharing one filename across
+# datasets is the same bug class that produced four silent portability faults in the tower port,
+# each of which would have been invisible on a dataset with a matching item count.
+_DS = os.environ.get("CASPER_DATASET", "ml-25m")
+_SFX = "" if _DS == "ml-25m" else "_" + _DS
+# CERTIFIED PAIR per dataset. ml-25m: the Aug-3 certified pair, untouched (author ruling
+# 2026-09-12: Paper B's artifact set does not move). goodreads: tower selected by the
+# pre-registered rule (t2i26g ep53), concept net cvg_ep10 -- the epoch that same rule picks,
+# which A17 missed by taking the run's LAST epoch (ep12) instead.
+_CERT = {
+    "ml-25m": (os.path.join(_ROOT, "models", "i26c_ep31", "t2i26c_ep31.pt"),
+               os.path.join(_ROOT, "models", "i26c_ep31", "concept_cv3_ep08.pt")),
+    "goodreads": (os.path.join(_ROOT, ".cache", "instrument", "t2i26g_ep53.pt"),
+                  os.path.join(_ROOT, ".cache", "instrument", "cvg_ep10.pt")),
+}[_DS]
+CERT_TOWER, CERT_CONC = _CERT
+CONCSTATS = os.path.join(_ROOT, ".cache", "instrument", f"signed_train_concstats{_SFX}.npz")
 N_TRAIN_USERS = 140768.0                       # canonical Liang split train cohort (answer-rate denom)
 
 
@@ -1427,7 +1442,8 @@ def main():
     pexp = (ctx.cnt @ np.asarray(Mm.todense())) / max(ctx.cnt.sum(), 1e-9)
     mean_abs, std_v = train_concept_stats(ctx, Mm, pexp, smoke=args.smoke)
     # concept answer-rate (HELF-analog): fraction of train users with support >= tau
-    CONCSTATS = os.path.join(_ROOT, ".cache", "instrument", "signed_train_concstats.npz")
+    # was a local rebind to the hardcoded ml-25m filename, shadowing the module constant
+    CONCSTATS = os.path.join(_ROOT, ".cache", "instrument", f"signed_train_concstats{_SFX}.npz")
     if args.smoke or not os.path.exists(CONCSTATS):
         ans_rate = np.random.RandomState(6).rand(len(std_v)).astype(np.float32)
     else:

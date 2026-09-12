@@ -53,7 +53,13 @@ from tradeoff_ledger import build_shared, Rung
 assert not hasattr(sys.modules[__name__], "load_answerer")
 
 BUDGETS = (2, 4, 8, 16)
-CONCSTATS = os.path.join(_ROOT, ".cache", "instrument", "signed_train_concstats.npz")
+# Dataset selection (2026-09-12): follows CASPER_DATASET, default ml-25m so the certified ML-25M
+# path is unchanged. The concept STATS are per-dataset quantities -- sharing one filename across
+# datasets is the same bug class that produced four silent portability faults in the tower port,
+# each of which would have been invisible on a dataset with a matching item count.
+_DS = os.environ.get("CASPER_DATASET", "ml-25m")
+_SFX = "" if _DS == "ml-25m" else "_" + _DS
+CONCSTATS = os.path.join(_ROOT, ".cache", "instrument", f"signed_train_concstats{_SFX}.npz")
 
 
 def train_concept_stats(ctx, Mm, pexp, smoke=False, chunk=20000):
