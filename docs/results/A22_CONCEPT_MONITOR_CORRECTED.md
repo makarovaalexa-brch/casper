@@ -145,3 +145,61 @@ The dense bucket is identical by construction — it conditions on answerable co
 (`concept_curriculum_v2.py:213`). The three *interview* regimes, the deployment-shaped 55% of training,
 collapse. So the net is also trained on far fewer multi-answer interview states, which is a plausible
 contributor to the saturation but cannot be the whole story, since the answers buy nothing even at m8.
+
+## ⛔ ADDENDUM 2 — the middle band is a null, and EQUAL ANSWERS settles it
+
+**Middle band.** Informativeness is flat at |SEL| ≈ 0.95 across every Goodreads band except the top-61
+(0.843), so rank 61–200 (refusal 0.584, median 1,095 members) was the only candidate for "large enough
+to answer, small enough to discriminate". It is a null:
+
+| Goodreads ask set | fold m1 / m4 / m8 | scrambled m8 |
+|---|---|---|
+| broad (shipped) | +0.0029 / +0.0019 / +0.0011 | −0.0028 |
+| topN:61 | +0.0013 / −0.0001 / **−0.0077** | −0.0277 |
+| band:61–200 | +0.0033 / +0.0013 / +0.0013 | −0.0040 |
+| *ML-25M broad, for scale* | *+0.0000 / +0.0040 / +0.0037* | *−0.0100* |
+
+Also: the **structural rule is unusable**. Matching ML-25M's member-count IQR (124–712) on Goodreads
+keeps 669 concepts at refusal **0.892** — worse than the shipped policy. Goodreads cannot be made to
+look like ML-25M by any selection over its own bank.
+
+**Equal answers, not equal questions.** Goodreads collects ~0.27 answers per broad ask against ML-25M's
+~0.75, so m=8 compares 2.2 answers with 6.0. Extending the Goodreads interview:
+
+| m asked | expected answers | NDCG | fold effect |
+|---|---|---|---|
+| 0 | 0.0 | 0.1936 | — |
+| 8 | 2.2 | 0.1938 | +0.0002 |
+| 16 | 4.4 | 0.1934 | −0.0003 |
+| **22** | **6.0** (= ML-25M's m=8) | 0.1936 | **−0.0001** |
+| 32 | 8.7 | 0.1914 | −0.0023 |
+
+**At the answer count ML-25M converts into +0.0037, Goodreads converts into −0.0001.** The answer-rate
+explanation — the leading implementation story, and the one the member-count hypothesis rested on — is
+refuted. It is not starvation.
+
+## Where this leaves the diagnosis
+
+Eliminated, each by measurement rather than argument:
+
+| explanation | verdict |
+|---|---|
+| monitor protocol | **CONFIRMED as the cause of the reported DECLINE**; corrected, the curve is flat |
+| answer-rate starvation | **REFUTED** — equal-answer depth buys nothing |
+| concept narrowness / ask policy | **REFUTED** — broad, top-N and middle band all land in the same place |
+| answer-value scale, fold saturation | not implicated (halving values n.s.; 6% of Goodreads updates hit the cap vs 72% on ML-25M) |
+| genuine | **the surviving explanation** |
+
+The honest claim is now: *the concept channel's mechanism does not port to Goodreads. Under a corrected
+protocol it neither helps nor harms — the fold effect is +0.001 at 8 questions and −0.0001 at the answer
+count ML-25M converts into +0.0037 — and what little positive there is comes from refusals rather than
+answers. This is not an answer-rate effect: it survives equalising answers, and no selection over the
+shelf bank recovers it.* The item channel, arena, split, teacher and tower are untouched.
+
+⚠ Scope the claim to **the shelf vocabulary we mined**, not to books in general. A different attribute
+source (genre/subject metadata rather than user shelves) is untested.
+
+**The one untested intervention** is a retrain under a corrected curriculum and monitor — the only
+in-distribution test. Its prior is low: the dense bucket already supplies 4.4 answered concepts per
+example on Goodreads, so the net has seen multi-answer states, and the answers buy nothing when present
+(answers-only fold −0.0008 at m8). It is ~68 min and it would change the certified artifact set.
