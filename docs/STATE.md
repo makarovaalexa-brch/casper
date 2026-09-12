@@ -1,5 +1,42 @@
 # STATE — where the project is now
 
+## ★★★ 2026-09-12 — GOODREADS PORT COMPLETE: the concept channel PORTS, via a different mechanism
+
+**AUTHOR SAID:** *"keep going with all fable suggestions and hypothesis about concept member count, try
+to make the channel work for goodreads"*.
+
+**It already worked.** The reported failure was instrumentation, in two compounding layers.
+
+| | result |
+|---|---|
+| concept fold effect, mean over all 12 epochs, corrected ruler | **ML-25M +0.0015 / Goodreads +0.0016** |
+| out-of-sample-selected epoch | ML-25M ep11 +0.0020 / Goodreads ep01 **+0.0035** |
+| mechanism (answers' share of the lift at m8) | ML-25M **67%** / Goodreads **11%** — Goodreads works through REFUSALS |
+| saturation | peaks at m=16 (fold +0.0034), decays after |
+| member-count / ask-set fix | **refuted** on both a weak and a strong checkpoint |
+
+**Two retractions.** (1) A17's "concept answers make Goodreads worse" was eval-time member-drop in the
+monitor (`concept_train_v2.py:105-107`). (2) A22's "does not port" was a comparison of `cvg_ep12`
+against `cv3_ep04`, two checkpoints BOTH chosen by that bent monitor and both weak.
+
+Results: `docs/results/A24_RESELECTED_DIAGNOSTICS.md` (current) ·
+`A22_CONCEPT_MONITOR_CORRECTED.md` (addenda 1–2 superseded as dataset statements) ·
+`A17_GOODREADS_PORT.md` (build sound, negative retracted).
+Design `docs/design/DS_A22_CONCEPT_MONITOR_AND_ASKSET.md`. Instruments `a22_concept_curve_paired.py`,
+`a23_reselect_concept_epoch.py`, `run_a24_reselected_diagnostics.sh`.
+
+### Next, in priority order
+1. **Paper B's +0.01430 portability** — the real question, untested. Its harness has no member-drop so
+   the monitor defect does not touch it, but the answers-per-question ledger for concepts vs items on
+   the deployed Goodreads harness has never been run. Larger job than anything above.
+2. **Fix the in-training monitor** in `concept_train_v2` (member-drop at eval, unpaired levels,
+   `users[-1500:]` slice). Until then every future run selects on the bent ruler.
+3. **Re-certification decision (author's):** `cv3_ep04` is still the certified ML-25M concept
+   checkpoint and is one of its weakest epochs on the corrected ruler. Re-certifying moves Paper B's
+   artifact set.
+
+---
+
 ## ★★★ 2026-09-10 — SECOND DATASET: the instrument is being ported to Goodreads
 
 **AUTHOR SAID:** *"commit everything we have, do not edit the paper or the chapter, and replicate the
