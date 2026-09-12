@@ -278,6 +278,14 @@ class Rung:
                 ci, vv = ConceptFoldNet.canonical_order([c for c, _ in cl], [v for _, v in cl])
                 cids.append(ci); cvals.append(vv)
             with torch.no_grad():
+                # Every concept in conc_lists is an ANSWERED one -- strategy_channel_suite only
+                # folds a concept when `answ[r, idx] and Fs[r, idx]` holds, so the deployed
+                # harness never folds concept REFUSALS. A net trained with use_refusal=True
+                # (e.g. the Goodreads cvg_* line) still requires the flag vector, so pass the
+                # honest all-answered one rather than leaving it unset.
+                if getattr(self.clite, "use_refusal", False):
+                    crefs = [[0.0] * len(ci) for ci in cids]
+                    return self.clite(Z, cids, cvals, crefs)
                 return self.clite(Z, cids, cvals)
         for r, cl in enumerate(conc_lists):                  # Arm A / FixAB: additive shift
             cold = len(item_seqs[r][0]) == 0
