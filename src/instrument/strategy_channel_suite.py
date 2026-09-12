@@ -73,8 +73,12 @@ assert not hasattr(sys.modules[__name__], "load_answerer")
 
 BUDGETS = (1, 2, 4, 8, 16)
 PNG_NAME = "strategy_channel_curves_2026-07-25.png"
-QBANK_JSON = os.path.join(_ROOT, "experiments", "battery" + ("" if _DS == "ml-25m" else "_" + _DS),
-                          "qbank_expansion.json")
+# NB: _DS is defined further down (with the certified-pair table), so this computes its own suffix.
+QBANK_JSON = os.path.join(
+    _ROOT, "experiments",
+    "battery" + ("" if os.environ.get("CASPER_DATASET", "ml-25m") == "ml-25m"
+                 else "_" + os.environ["CASPER_DATASET"]),
+    "qbank_expansion.json")
 QBANK_PNG = os.path.join(_ROOT, "experiments", "battery", "qbank_expansion.png")
 # Okabe-Ito CVD-safe, FIXED assignment (never cycled; shared arms share colors across panels)
 COLORS = {"items-pop": "#0072B2", "items-entropy": "#D55E00", "items-HELF": "#009E73",
