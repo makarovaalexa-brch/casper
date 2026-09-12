@@ -94,3 +94,54 @@ monitor, and the corrected ML-25M curve is weaker than the shipped one.
   within seed and therefore much tighter, which is why it is the statistic quoted.
 - Goodreads m0 (0.1936) sits above ML-25M's (0.1817), so the two channels are not compared at equal
   starting difficulty.
+
+## ⛔ ADDENDUM — on Goodreads the ANSWERS buy nothing; the REFUSALS carry what little there is
+
+`--no_refusals` feeds only the concepts the user actually answered, so the refusal tokens can be
+priced separately (they are fed to the net: `use_refusal=True`). Corrected protocol, 3 seeds:
+
+| | fold effect m1 / m4 / m8 |
+|---|---|
+| ML-25M, refusals fed | +0.0000 / **+0.0040** / **+0.0037** |
+| ML-25M, answers only | −0.0005 / **+0.0036** / **+0.0033** |
+| Goodreads, refusals fed | +0.0029 / +0.0019 / **+0.0011** |
+| Goodreads, answers only | −0.0003 / −0.0006 / **−0.0008** |
+
+On ML-25M stripping the refusals costs almost nothing: the ANSWERS carry the lift. On Goodreads it
+reverses — the answered concepts contribute nothing and the entire (small) positive comes from the
+REFUSAL PATTERN, i.e. from learning which shelves the user cannot speak to.
+
+**This is not dilution.** A user with no tokens has a fold effect of exactly 0 by construction, so at
+m1 (73% refusal) the answers-only mean is indeed diluted. But at m8, P(at least one answer)
+= 1 − 0.727^8 = **0.98** — almost nobody is zeroed — and the answers-only fold effect is still
+slightly negative.
+
+### The pincer, and why no ask-policy fix works
+
+Put together with the top-N result, the Goodreads concept vocabulary is caught between two failures:
+
+- **Narrow shelves are informative but unanswerable.** Median concept = 80 of 18,430 books; broad-policy
+  refusal 0.727 against ML-25M's 0.252.
+- **Broad shelves are answerable but contentless.** Forcing the answer rate to ML-25M's by asking only
+  the 61 broadest (median 3,096 members, 17% of the catalogue) drives the m8 fold effect to −0.0077.
+
+No *ask policy* escapes a pincer in the bank itself, which is why R-rate failed. **Untested: whether a
+middle band exists** — concepts large enough to answer and small enough to discriminate. That is the
+next experiment and the last cheap route to making the channel work on Goodreads.
+
+### Training never supplies the multi-answer states either
+
+20,000 draws from the live curriculum per dataset, answered concepts per training example:
+
+| regime (share) | ML-25M | Goodreads |
+|---|---|---|
+| dense (30%) | 4.50 | 4.42 |
+| interview_broad (18%) | 7.25 | **2.44** |
+| interview_uniform (18%) | 5.02 | **0.63** |
+| interview_niche (18%) | 2.51 | **0.10** |
+| **P(≥8 answers), overall** | **0.156** | **0.053** |
+
+The dense bucket is identical by construction — it conditions on answerable concepts
+(`concept_curriculum_v2.py:213`). The three *interview* regimes, the deployment-shaped 55% of training,
+collapse. So the net is also trained on far fewer multi-answer interview states, which is a plausible
+contributor to the saturation but cannot be the whole story, since the answers buy nothing even at m8.
