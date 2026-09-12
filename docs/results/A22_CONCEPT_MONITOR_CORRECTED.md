@@ -203,3 +203,73 @@ source (genre/subject metadata rather than user shelves) is untested.
 in-distribution test. Its prior is low: the dense bucket already supplies 4.4 answered concepts per
 example on Goodreads, so the net has seen multi-answer states, and the answers buy nothing when present
 (answers-only fold −0.0008 at m8). It is ~68 min and it would change the certified artifact set.
+
+## ⛔⛔ ADDENDUM 3 — THE CHANNEL PORTS. Addendum 2's "does not port" is RETRACTED.
+
+Addendum 2 concluded that the concept channel does not port to Goodreads and that explanation (4),
+genuine, was what survived. **That was wrong, and the error was mine: I compared `cvg_ep12` against
+`cv3_ep04` — two checkpoints BOTH chosen by the bent ruler — and then ran every diagnostic on
+`cvg_ep12` alone.** A22's own finding (the monitor is bent) implies its *selections* are bent too, which
+I noted for ML-25M and then failed to apply before drawing a cross-dataset conclusion.
+
+`a23_reselect_concept_epoch.py` re-scores all 12 epochs of each run on the corrected protocol. No
+retraining: the monitor is eval-only and feeds no gradients, so the checkpoints on disk are untouched.
+Run twice per dataset on **independent seed sets** (4242/5242 and 777/1777), because picking the best of
+12 on the same seeds that ranked them is selection on noise.
+
+Mean paired fold effect over m in (1,4,8):
+
+| epoch | ML s4242 | ML s777 | GR s4242 | GR s777 |
+|---|---|---|---|---|
+| ep1 | −0.0004 | −0.0004 | **+0.0028** | **+0.0035** |
+| ep2 | +0.0003 | +0.0018 | +0.0025 | +0.0018 |
+| ep3 | +0.0011 | +0.0032 | +0.0027 | +0.0016 |
+| ep4 *(certified ML)* | +0.0006 | +0.0025 | +0.0016 | −0.0003 |
+| ep5 | +0.0009 | +0.0010 | −0.0006 | +0.0012 |
+| ep6 | +0.0012 | +0.0029 | +0.0001 | +0.0006 |
+| ep7 | +0.0018 | +0.0020 | +0.0010 | +0.0017 |
+| ep8 | +0.0003 | +0.0028 | +0.0008 | +0.0013 |
+| ep9 | +0.0007 | +0.0014 | +0.0000 | +0.0023 |
+| ep10 | −0.0002 | +0.0030 | **+0.0027** | **+0.0036** |
+| ep11 | +0.0024 | +0.0020 | +0.0012 | +0.0024 |
+| ep12 *(certified GR)* | +0.0023 | +0.0035 | +0.0014 | +0.0024 |
+
+**The selection-free comparison, which is the one to quote:**
+
+| | mean over all 12 epochs | out-of-sample best | rank stability across seeds |
+|---|---|---|---|
+| ML-25M | +0.0009 / +0.0021 → **+0.0015** | ep11 → **+0.0020** | Spearman 0.32 |
+| Goodreads | +0.0014 / +0.0018 → **+0.0016** | ep1 → **+0.0035** | Spearman 0.51 |
+
+**+0.0015 vs +0.0016.** The datasets are indistinguishable, and on the out-of-sample best epoch
+Goodreads is ahead. **The concept channel ports.** The apparent failure was two compounding artifacts:
+eval-time member-drop, which manufactured the decline, and bent-ruler checkpoint selection, which then
+compared one of ML-25M's *weakest* epochs (ep4, +0.0006) against a mediocre Goodreads one (ep12).
+
+### What this does NOT overturn
+
+- The **retraction of the original negative** stands, and is now doubly supported.
+- The **pincer measurements** stand as measurements: Goodreads concepts really are narrower (median 80
+  vs 291), refusal really is 0.727 vs 0.252, and top-N asking really does hurt (−0.0077 on ep12). They
+  are simply no longer evidence of a portability failure.
+- The **member-count hypothesis remains refuted as a fix** — restricting the ask set makes things worse
+  on both datasets.
+
+### What is now in question, and must be re-run before anything is claimed
+
+Every diagnostic in Addenda 1 and 2 ran on `cvg_ep12` (fold +0.0014, a below-average epoch) or on
+`cv3_ep04` (+0.0006, near ML-25M's worst). **They must be repeated on the re-selected epochs**:
+
+1. the equal-ANSWER curve (m = 8/16/22/32), which gave −0.0001 at m22 on ep12;
+2. the refusals-vs-answers decomposition, which said Goodreads' lift comes entirely from refusals;
+3. the ask-set arm (topN, band).
+
+Until then, treat Addenda 1 and 2's *mechanisms* as provisional. Their *measurements* are sound; what
+is unsafe is reading them as properties of the datasets rather than of two badly-chosen checkpoints.
+
+### Method lesson
+
+Epoch-to-epoch spread (ML −0.0004 to +0.0035) is **larger than the effect being measured**, and rank
+stability across seed sets is weak-to-moderate (Spearman 0.32/0.51). Any cross-dataset claim about this
+channel must be made on the mean over epochs or on an out-of-sample-selected epoch — never on a single
+checkpoint, and never on one selected by a different ruler than the one reporting the result.
