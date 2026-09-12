@@ -127,3 +127,33 @@ selection rule, it was not following it.
 Author ruling 2026-09-12: **ML-25M is left as-is** (`cv3_ep04` stays certified — not enough time to
 redo Paper B's artifact set). Goodreads proceeds on **`cvg_ep10`**, which is what the project's own
 pre-registered selection rule picks when it is actually applied. No post-hoc selection is involved.
+
+### Certified numbers for `cvg_ep10` (seeds 777/1777/2777, corrected protocol)
+
+| m | NDCG@10 | fold | answers only | scrambled |
+|---|---|---|---|---|
+| 0 | 0.1846 | — | — | — |
+| 1 | 0.1882 | +0.0036 | −0.0005 | **+0.0040** |
+| 4 | 0.1875 | +0.0029 | −0.0013 | +0.0020 |
+| 8 | 0.1886 | **+0.0040** | −0.0002 | −0.0011 |
+
+Equal-answer curve: m8 +0.0020, **m16 +0.0024**, m22 +0.0003, m32 −0.0028 — same peak near 16 asks.
+
+Mean fold over m in (1,4,8): **Goodreads `cvg_ep10` +0.0035** against ML-25M's certified
+`cv3_ep08` **+0.0015**. On the corrected ruler the Goodreads concept channel is the *stronger* of the
+two certified pairs.
+
+**⚠ Caveat on the control, stated rather than buried.** G3 fires at m8 (+0.0040 → −0.0011) but **not at
+m1**, where a scrambled concept does as well as the real one (+0.0040 vs +0.0036). With 73% refusal a
+single question is almost always a refusal, so at depth 1 the model is learning *"this is a light
+reader"* — a generic sparsity cue — not anything about taste. Concept-identity sensitivity emerges only
+with depth. Any claim that one Goodreads concept question carries preference information is therefore
+**not supported**; the claim that eight of them do, is.
+
+### Correction to the certified ML-25M artifact
+
+`cv3_ep04` was repeatedly described in this line as "the certified ML-25M concept checkpoint". It is
+not. The certified artifact is **`models/i26c_ep31/concept_cv3_ep08.pt`** (verified byte-identical to
+`.cache/instrument/cv3_ep08.pt`); ep04 was merely the epoch whose validation curve A17 quoted. On the
+corrected ruler ep08 scores **+0.0015**, exactly the all-epoch mean — average, not weak. **Nothing on
+the ML-25M side needs re-certifying**, which is consistent with the author's ruling to leave it.
