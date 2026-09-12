@@ -214,6 +214,8 @@ def main():
     ap.add_argument("--seeds", type=int, default=5)
     ap.add_argument("--ask", default="broad", help="broad | topN:<N>")
     ap.add_argument("--skip_g1", action="store_true")
+    # A checkpoint SELECTED on one seed set must not be REPORTED on the same one (A23).
+    ap.add_argument("--seed0", type=int, default=4242)
     # Datasets with different answer rates must also be compared at equal ANSWERS, not only at
     # equal questions: Goodreads collects ~0.27 answers per broad ask, ML-25M ~0.75.
     ap.add_argument("--ms", default="0,1,4,8", help="asked-concept levels, comma separated")
@@ -266,7 +268,7 @@ def main():
             key = "drop=" + str(int(drop)) + ",scramble=" + str(int(scr))
             per_seed = []
             for si in range(a.seeds):
-                seed = 4242 + 1000 * si
+                seed = a.seed0 + 1000 * si
                 packs, kept = build_paired(S, mc, ms, N_VAL, seed, drop, a.ask, scr, a.no_refusals)
                 cell = {}
                 for m in ms:
@@ -298,7 +300,8 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     p = os.path.join(OUT, "a22_" + a.tag + "_" + a.ask.replace(":", "") +
                      ("_norefuse" if a.no_refusals else "") +
-                     ("" if a.ms == "0,1,4,8" else "_ms" + a.ms.replace(",", "-")) + ".json")
+                     ("" if a.ms == "0,1,4,8" else "_ms" + a.ms.replace(",", "-")) +
+                     ("" if a.seed0 == 4242 else "_s" + str(a.seed0)) + ".json")
     json.dump(res, open(p, "w"), indent=2)
     log("[a22] -> " + p)
 
