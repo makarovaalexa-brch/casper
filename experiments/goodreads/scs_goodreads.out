@@ -1,0 +1,43 @@
+[18:50:22] [data] reading raw ratings C:\dev\phd\casper\data\goodreads_ucsd\ratings.csv
+[18:50:30] [data] LEAK CHECKS PASS [goodreads]: vocab=18430, train=140768 disjoint from 2x10000 held-out, train likes=8734110==train.csv nnz, vocab-set matches unique_sid.txt
+[18:50:30] [teacher] RecVAE loaded from state.best_state: ep41 best_val=0.3436 (hidden=600 latent=200) -- FROZEN
+[18:50:31] [model] i26: decoder FROZEN RecVAE W+b; exposure branch + delta_b ZERO-INIT (bit-identical to i25 at step 0)
+[18:50:31] [model] i26 LR groups: NEW 234,897 params @ lr=0.0003; WARM 838,250 params @ lr=2.9999999999999997e-05 (warm_lr_scale=0.1)
+[18:50:31] [model] arch=i26 TRAINABLE=1,073,147 (exposure branch 234,697; NO per-item bias -- the prior is learned from the k=0 curriculum bucket)
+[18:50:31] [model] SIGN INIT v2 applied: gamma(level)=[-1.0, -1.0, -1.0, -0.75, -0.5, 0.25, 0.25, 1.0, 1.0, 1.0] (likes full +1, neutral +0.25, dislikes graded negative); beta=0
+[18:50:31] [ctx] snapshot loaded: t2i26g_ep53.pt ep=53 val_full=0.3374
+[18:50:33] [ctx] all-bands reconstruction: 733890 tokens; 4387 users with >=3 dislikes
+[18:50:39] [g5] loading genome-scores.csv (relevance >= 0.5, vocab-restricted)
+[18:50:40] [g5] 2408 concepts with >= 30 members
+[18:50:49] [ledger] SIGNED valuation arrays built (prereg cache found)
+[18:50:50] [rung] sclite concept fold = cvg_ep10.pt
+C:\Users\Tech\AppData\Roaming\Python\Python312\site-packages\scipy\sparse\_index.py:207: SparseEfficiencyWarning: Changing the sparsity structure of a csr_matrix is expensive. lil and dok are more efficient.
+  self._set_arrayXarray_sparse(i, j, x)
+[18:52:08] [items-pop] q1=0.1050/0.0075 q2=0.1100/0.0082 q4=0.1148/0.0087 q8=0.1152/0.0089 q16=0.1322/0.0138 (1.2m)
+[18:52:50] [items-entropy] q1=0.0888/0.0060 q2=0.0888/0.0061 q4=0.0889/0.0062 q8=0.0891/0.0066 q16=0.1017/0.0121 (0.7m)
+[18:53:55] [items-HELF] q1=0.0991/0.0098 q2=0.1034/0.0103 q4=0.1076/0.0105 q8=0.1140/0.0131 q16=0.1167/0.0162 (1.1m)
+[18:54:34] [items-random-bank] q1=0.0892/0.0064 q2=0.0894/0.0067 q4=0.0899/0.0072 q8=0.0906/0.0084 q16=0.0917/0.0099 (0.7m)
+[18:55:13] [conc-member-mass] q1=0.0868/0.0074 q2=0.0898/0.0101 q4=0.0943/0.0161 q8=0.1014/0.0200 q16=0.1203/0.0272 (0.6m)
+[18:55:51] [conc-polarization] q1=0.0881/0.0087 q2=0.0914/0.0110 q4=0.0979/0.0153 q8=0.0977/0.0177 q16=0.1178/0.0244 (0.6m)
+[18:56:30] [conc-HELF-analog] q1=0.0897/0.0098 q2=0.0954/0.0136 q4=0.0943/0.0161 q8=0.1087/0.0202 q16=0.1164/0.0237 (0.6m)
+[18:57:10] [conc-random] q1=0.0893/0.0066 q2=0.0899/0.0072 q4=0.0910/0.0080 q8=0.0927/0.0097 q16=0.0959/0.0127 (0.7m)
+[18:58:09] [ADAPTIVE-greedy] q1=0.0889/0.0060 q2=0.0889/0.0060 q4=0.0939/0.0105 q8=0.0889/0.0114 q16=0.0916/0.0142 (1.0m)
+[18:58:48] [ADAPTIVE-oracle (PRIVILEGED)] q1=0.1057/0.0270 q2=0.1139/0.0346 q4=0.1245/0.0432 q8=0.1317/0.0468 q16=0.1359/0.0487 (0.6m)
+[19:00:13] [mixed-c4-then-items] q1=0.0889/0.0060 q2=0.0889/0.0060 q4=0.0939/0.0105 q8=0.1197/0.0115 q16=0.1288/0.0124 (1.4m)
+[19:01:49] [mixed-interleave] q1=0.0889/0.0060 q2=0.1050/0.0075 q4=0.1066/0.0101 q8=0.1196/0.0117 q16=0.1271/0.0127 (1.6m)
+[19:01:52] [out] -> C:\dev\phd\casper\experiments\battery_goodreads\strategy_channel_suite.json + C:\dev\phd\casper\experiments\battery_goodreads\strategy_channel_curves_2026-07-25.png
+
+=== STRATEGY-BY-CHANNEL SUITE (sclite; intercept 0.0889/0.0060) ===
+                       items-pop: q1=0.1050 q2=0.1100 q4=0.1148 q8=0.1152 q16=0.1322
+                   items-entropy: q1=0.0888 q2=0.0888 q4=0.0889 q8=0.0891 q16=0.1017
+                      items-HELF: q1=0.0991 q2=0.1034 q4=0.1076 q8=0.1140 q16=0.1167
+               items-random-bank: q1=0.0892 q2=0.0894 q4=0.0899 q8=0.0906 q16=0.0917
+                conc-member-mass: q1=0.0868 q2=0.0898 q4=0.0943 q8=0.1014 q16=0.1203
+               conc-polarization: q1=0.0881 q2=0.0914 q4=0.0979 q8=0.0977 q16=0.1178
+                conc-HELF-analog: q1=0.0897 q2=0.0954 q4=0.0943 q8=0.1087 q16=0.1164
+                     conc-random: q1=0.0893 q2=0.0899 q4=0.0910 q8=0.0927 q16=0.0959
+                 ADAPTIVE-greedy: q1=0.0889 q2=0.0889 q4=0.0939 q8=0.0889 q16=0.0916
+    ADAPTIVE-oracle (PRIVILEGED): q1=0.1057 q2=0.1139 q4=0.1245 q8=0.1317 q16=0.1359
+             mixed-c4-then-items: q1=0.0889 q2=0.0889 q4=0.0939 q8=0.1197 q16=0.1288
+                mixed-interleave: q1=0.0889 q2=0.1050 q4=0.1066 q8=0.1196 q16=0.1271
+gap closed by greedy (full): q1=11% q2=-4% q4=-1% q8=-41% q16=-184%
