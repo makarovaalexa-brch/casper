@@ -63,6 +63,13 @@ def ask_set(policy, S, mc, rng, m):
         N = min(int(policy.split(":")[1]), C)
         pool = np.argsort(-mc)[:N]
         return rng.choice(pool, size=min(m, N), replace=False)
+    if policy.startswith("band:"):
+        # MIDDLE BAND by member-count rank: concepts large enough to be answerable, small enough to
+        # still discriminate. The top of the bank is answerable but contentless (topN) and the tail is
+        # informative but unanswerable -- this asks whether anything survives in between.
+        lo, hi = (int(x) for x in policy.split(":")[1].split("-"))
+        pool = np.argsort(-mc)[lo:min(hi, C)]
+        return rng.choice(pool, size=min(m, len(pool)), replace=False)
     raise ValueError(policy)
 
 
