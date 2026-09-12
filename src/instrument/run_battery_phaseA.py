@@ -66,8 +66,20 @@ GENOME = T2.GENOME
 # The CERTIFIED tower, 2026-08-02. Repointed 2026-08-08: this still named the i25 ep4 snapshot, two
 # towers behind. Everything downstream (premium_vs_k, the graded-premium figure, the sign probe)
 # inherits it, so a stale default here silently dated every R5 number in Chapter A.
-SNAP_DEFAULT = os.path.join(_ROOT, ".cache", "instrument", "t2i26c_ep31.pt")
-OUTDIR = os.path.join(_ROOT, "experiments", "battery")
+# The default TOWER must follow CASPER_DATASET like PROC/GENOME above. It did not, so a Goodreads
+# run silently took the ML-25M tower and died on an 18,359-vs-18,430 embedding size mismatch --
+# caught only because the vocabularies differ. On a dataset with a matching item count it would
+# have loaded and produced plausible, wrong numbers.
+SNAP_DEFAULT = {
+    "ml-25m": os.path.join(_ROOT, ".cache", "instrument", "t2i26c_ep31.pt"),
+    "goodreads": os.path.join(_ROOT, ".cache", "instrument", "t2i26g_ep53.pt"),
+}[os.environ.get("CASPER_DATASET", "ml-25m")]
+# Per-dataset OUTPUT DIR. Both datasets wrote here, so a Goodreads run would have overwritten the
+# certified ML-25M battery results -- including the artifacts Paper B depends on (HARD RULE 11e:
+# never let two runs share an output path). ml-25m keeps the original path exactly.
+_DSOUT = os.environ.get("CASPER_DATASET", "ml-25m")
+_OUTSFX = "" if _DSOUT == "ml-25m" else "_" + _DSOUT
+OUTDIR = os.path.join(_ROOT, "experiments", "battery" + _OUTSFX)
 BOOT = 10_000
 SEED = 4242
 

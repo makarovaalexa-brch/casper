@@ -76,8 +76,13 @@ assert "load_answerer" not in globals()                          # retired-answe
 
 CKPT_DIR = os.path.join(_ROOT, ".cache", "instrument")
 OUTDIR = os.path.join(_ROOT, "experiments", "battery")
-SNAP_DEFAULT = os.path.join(CKPT_DIR, "t2i25_EP4_SNAP.pt")
-STEP0_JSON = os.path.join(OUTDIR, "concept_distill_step0.json")
+# Was stale (named the i25 tower, two towers behind) AND shared across datasets. Every caller in
+# this line passes --snapshot explicitly, so this only guards an omitted flag.
+_DSK = os.environ.get("CASPER_DATASET", "ml-25m")
+SNAP_DEFAULT = os.path.join(CKPT_DIR, {"ml-25m": "t2i26c_ep31.pt",
+                                       "goodreads": "t2i26g_ep53.pt"}[_DSK])
+STEP0_JSON = os.path.join(OUTDIR, "concept_distill_step0%s.json"
+                          % ("" if _DSK == "ml-25m" else "_" + _DSK))
 SEED = 4242
 M_MAX_DEFAULT = 16                                               # kc curriculum U{1..M_MAX} (design: 1..32)
 KC_EVAL = (1, 2, 4)                                              # capture budgets (crater + composition)
