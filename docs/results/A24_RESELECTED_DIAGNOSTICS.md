@@ -87,3 +87,43 @@ A19 having matched per-*item* density and never per-*concept* size), broad-polic
   takes `users[-1500:]`. Any future run selects on the bent ruler unless it is fixed.
 - **cv3_ep04 remains the certified ML-25M concept checkpoint** and is one of its weakest epochs on the
   corrected ruler. Whether to re-certify is an author decision — it would move Paper B's artifact set.
+
+## ⚠ CORRECTION (same day) — "bent-ruler selection" overstated the criterion's fault
+
+Checking the shipped SEL against the corrected fold effect, averaged over BOTH seed sets:
+
+| | Pearson | Spearman |
+|---|---|---|
+| ML-25M | +0.752 | +0.664 |
+| Goodreads | +0.745 | +0.685 |
+
+**The shipped criterion was a mediocre ranker, not a broken one**, and the claim that both certified
+checkpoints were victims of it is wrong. The two datasets fail differently:
+
+- **Goodreads — this was a HANDLING error, not a criterion error.** The shipped SEL's best epoch is
+  **ep10**, and ep10 *is* the genuinely best epoch (+0.0032). The criterion got it right. A17 evaluated
+  **ep12** because it took the run's last epoch, and even recorded "Best SEL 0.1830 at ep10" without
+  acting on it. ep12 is +0.0019, so roughly 40% of the channel's benefit was discarded by scoring the
+  wrong file. **Every A22/A24 diagnostic inherited that choice.**
+- **ML-25M — this one is the criterion.** It picked ep4 (+0.0016); the best is ep12 (+0.0029).
+
+Also correcting a number used earlier in this line: `cv3_ep04` was described as "one of ML-25M's weakest
+epochs, +0.0006". That came from a **single** seed set. Averaged over both it is **+0.0016** — middling,
+6th of 12. The epoch spread is small enough that one seed set reorders the ranking, which is the same
+caution the A23 method lesson already states.
+
+| | criterion picked | its value | actual best | best value |
+|---|---|---|---|---|
+| ML-25M | ep4 | +0.0016 | ep12 | +0.0029 |
+| Goodreads | **ep10** | **+0.0032** | **ep10** | **+0.0032** |
+
+**Nothing in the headline changes**: the channel ports (+0.0015 ML-25M / +0.0016 Goodreads averaged
+over all 12 epochs), the mechanism difference stands, and the member-count fix stays refuted. What
+changes is the explanation of how we came to run on a weak Goodreads checkpoint — it was not the
+selection rule, it was not following it.
+
+## ⭐ CERTIFIED GOODREADS CONCEPT CHECKPOINT: `cvg_ep10`
+
+Author ruling 2026-09-12: **ML-25M is left as-is** (`cv3_ep04` stays certified — not enough time to
+redo Paper B's artifact set). Goodreads proceeds on **`cvg_ep10`**, which is what the project's own
+pre-registered selection rule picks when it is actually applied. No post-hoc selection is involved.
