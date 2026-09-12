@@ -101,10 +101,11 @@ def train_concept_stats(ctx, Mm, pexp, smoke=False, chunk=20000):
     return mean_abs, std
 
 
-def score_users(rung, item_seqs, conc_lists, rows, mask_items=None):
+def score_users(rung, item_seqs, conc_lists, rows, mask_items=None, conc_refused=None):
     """Rung fold -> per-user full/tail NDCG@10 with credit-neutral masking of revealed ITEMS."""
     ctx = rung.ctx
-    Z = rung.z_batch(item_seqs, conc_lists)
+    # conc_refused: optional [[c]] of asked-and-refused concepts to fold (see Rung.z_batch).
+    Z = rung.z_batch(item_seqs, conc_lists, conc_refused)
     full = np.full(len(rows), np.nan); tail = np.full(len(rows), np.nan)
     for st in range(0, len(rows), 500):
         ch = rows[st:st + 500]

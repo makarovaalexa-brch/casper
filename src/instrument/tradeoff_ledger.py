@@ -256,8 +256,15 @@ class Rung:
     def enc(self):
         return self.cfull if self.cfull is not None else self.ctx.enc
 
-    def z_batch(self, item_seqs, conc_lists):
-        """item_seqs: [(sids, lvls)]; conc_lists: [[(c, v)]]. Returns (B, d)."""
+    def z_batch(self, item_seqs, conc_lists, conc_refused=None):
+        """item_seqs: [(sids, lvls)]; conc_lists: [[(c, v)]]. Returns (B, d).
+
+        conc_refused: optional [[c]] of concepts that were ASKED and REFUSED. The deployed
+        harness has always dropped these (strategy_channel_suite.py:176 folds only when
+        `answ and Fs`), but A24 measured that on Goodreads the refusal PATTERN carries most of
+        the fold-level lift, so this makes them foldable for a controlled comparison. Only the
+        C-lite path honours it, and only for a net built with use_refusal=True.
+        """
         if self.cfull is not None:                           # C-full: concepts are tower tokens
             seqs = []
             for (s, l), cl in zip(item_seqs, conc_lists):
@@ -285,7 +292,18 @@ class Rung:
                 # honest all-answered one rather than leaving it unset.
                 if getattr(self.clite, "use_refusal", False):
                     crefs = [[0.0] * len(ci) for ci in cids]
+                    if conc_refused is not None:
+                        # append the refused concepts: value 0, refusal flag 1
+                        for j, rf in enumerate(conc_refused):
+                            if not len(rf):
+                                continue
+                            cids[j] = list(cids[j]) + [int(c) for c in rf]
+                            cvals[j] = list(cvals[j]) + [0.0] * len(rf)
+                            crefs[j] = crefs[j] + [1.0] * len(rf)
                     return self.clite(Z, cids, cvals, crefs)
+                assert (conc_refused is None or not any(len(r) for r in conc_refused)), (
+                    "conc_refused given but this concept net was built with "
+                    "use_refusal=False")
                 return self.clite(Z, cids, cvals)
         for r, cl in enumerate(conc_lists):                  # Arm A / FixAB: additive shift
             cold = len(item_seqs[r][0]) == 0

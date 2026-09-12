@@ -85,6 +85,7 @@ COLORS = {"items-pop": "#0072B2", "items-entropy": "#D55E00", "items-HELF": "#00
           "items-random-bank": "#999999",
           "conc-member-mass": "#0072B2", "conc-polarization": "#D55E00",
           "conc-HELF-analog": "#009E73", "conc-random": "#999999",
+          "conc-member-mass+refusals": "#56B4E9",
           "ADAPTIVE-greedy": "#CC79A7", "ADAPTIVE-oracle (PRIVILEGED)": "#E69F00",
           "mixed-c4-then-items": "#56B4E9", "mixed-interleave": "#F0E442"}
 
@@ -131,7 +132,8 @@ def items_walk(rung, rows, order_fn, budgets=BUDGETS):
     return res
 
 
-def concept_walk(rung, rows, mode, mean_abs, std_v, static_order=None, budgets=BUDGETS):
+def concept_walk(rung, rows, mode, mean_abs, std_v, static_order=None, budgets=BUDGETS,
+                 fold_conc_refusals=False):
     """Concept strategies. mode: 'static' (static_order = global array or 'random'), 'greedy',
     'oracle'. Signed fold rule: answered iff structural; refuse band burns without folding."""
     ctx, sh = rung.ctx, rung.sh
@@ -142,6 +144,9 @@ def concept_walk(rung, rows, mode, mean_abs, std_v, static_order=None, budgets=B
     Vs = sh["conc_value_signed"]; Fs = sh["conc_fold_signed"]; answ = sh["conc_answerable"]
     asked = np.zeros((len(rows), C), bool)
     folded = [[] for _ in rows]
+    # A refused concept burns budget but has never been folded. A24 measured that on Goodreads
+    # the refusal PATTERN carries most of the fold-level lift, so track them for the opt-in arm.
+    refused = [[] for _ in rows]
     Z = torch.zeros(len(rows), ctx.d)
     per_user_rand = None
     if mode == "static" and isinstance(static_order, str) and static_order == "random":
@@ -175,13 +180,17 @@ def concept_walk(rung, rows, mode, mean_abs, std_v, static_order=None, budgets=B
             asked[j, c] = True
             if answ[r, c] and Fs[r, c]:
                 folded[j].append((c, float(Vs[r, c]))); changed = True
+            elif fold_conc_refusals:
+                refused[j].append(c); changed = True
+        _ref = [list(r) for r in refused] if fold_conc_refusals else None
         if mode == "greedy" and changed and step < qmax:
-            Z = rung.z_batch([empty_i] * len(rows), [list(f) for f in folded])
+            Z = rung.z_batch([empty_i] * len(rows), [list(f) for f in folded], _ref)
         if step in budgets:
             full, tail, _ = score_users(rung, [empty_i] * len(rows),
-                                        [list(f) for f in folded], rows)
+                                        [list(f) for f in folded], rows, conc_refused=_ref)
             out[step] = {"full@10": float(np.nanmean(full)), "tail@10": float(np.nanmean(tail)),
                          "mean_answered": float(np.mean([len(f) for f in folded])),
+                         "mean_refused": float(np.mean([len(r) for r in refused])),
                          "_fv": full, "_tv": tail}
     return out
 
@@ -1376,6 +1385,9 @@ def greedy_main(args):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--conc_refusal_arm", action="store_true",
+                    help="add conc-member-mass+refusals: same selector, but asked-and-refused "
+                         "concepts are folded (value 0, refusal flag 1) instead of dropped")
     ap.add_argument("--snapshot", default=PA.SNAP_DEFAULT)
     # The sclite rung's concept fold. ml-25m keeps cfold_signed_best.pt exactly. goodreads gets
     # its own certified net -- the ml-25m file carries a 1,031-concept embedding and Goodreads has
@@ -1568,6 +1580,13 @@ def main():
            static_order=np.argsort(-helf_c))
     runlog("conc-random", concept_walk, rung, rows, "static", mean_abs, std_v,
            static_order="random")
+    if args.conc_refusal_arm:
+        # A24: on Goodreads the refusal PATTERN carries most of the FOLD-level lift, yet this
+        # harness has always dropped refused concepts. Same selector as conc-member-mass, the
+        # only difference being that refusals are folded (value 0, refusal flag 1). Opt-in, so
+        # the certified ML-25M arm set is unchanged.
+        runlog("conc-member-mass+refusals", concept_walk, rung, rows, "static", mean_abs, std_v,
+               static_order=sh["bank_conc"], fold_conc_refusals=True)
     runlog("ADAPTIVE-greedy", concept_walk, rung, rows, "greedy", mean_abs, std_v)
     runlog("ADAPTIVE-oracle (PRIVILEGED)", concept_walk, rung, rows, "oracle", mean_abs, std_v)
     # MIXED
