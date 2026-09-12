@@ -56,6 +56,9 @@ def main():
     ap.add_argument("--tag", required=True)
     ap.add_argument("--seeds", type=int, default=2)
     ap.add_argument("--ask", default="broad")
+    # Selecting the max over 12 epochs on the SAME seeds that ranked them is selection on noise.
+    # --seed0 gives an independent seed set so the ranking can be replicated out of sample.
+    ap.add_argument("--seed0", type=int, default=4242)
     a = ap.parse_args()
 
     import metrics as _M
@@ -69,7 +72,7 @@ def main():
     # packs are a function of (users, rng, ask policy) only -- NOT of the net, so build once
     packsets = []
     for si in range(a.seeds):
-        seed = 4242 + 1000 * si
+        seed = a.seed0 + 1000 * si
         p, kept = A22.build_paired(S, mc, MS, A22.N_VAL, seed, False, a.ask, False)
         packsets.append(p)
         A22.log("[packs] seed " + str(seed) + " built, n=" + str(kept))
@@ -110,7 +113,8 @@ def main():
             "  fold=" + format(best_fold["fold_mean"], "+.4f"))
 
     os.makedirs(OUT, exist_ok=True)
-    p = os.path.join(OUT, "a23_reselect_" + a.tag + ".json")
+    p = os.path.join(OUT, "a23_reselect_" + a.tag +
+                     ("" if a.seed0 == 4242 else "_s" + str(a.seed0)) + ".json")
     json.dump({"tag": a.tag, "prefix": a.prefix, "snapshot": os.path.basename(a.snapshot),
                "ask": a.ask, "seeds": a.seeds, "rows": rows,
                "best_by_sel_corrected": best_sel["ckpt"],
