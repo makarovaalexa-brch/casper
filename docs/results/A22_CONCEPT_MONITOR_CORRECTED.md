@@ -1,3 +1,8 @@
+> **ADDENDA 1 AND 2 ARE SUPERSEDED AS DATASET STATEMENTS, 2026-09-12.** They ran on `cvg_ep12`
+> and `cv3_ep04`, both chosen by the bent monitor and both weak. Their measurements stand; their
+> reading does not. Re-run on the re-selected epochs: `docs/results/A24_RESELECTED_DIAGNOSTICS.md`.
+> **The channel PORTS** (+0.0016 GR vs +0.0015 ML over all 12 epochs).
+
 # A22 — the Goodreads "decline" was the monitor. What is left is SATURATION, not harm (2026-09-12)
 
 Design `docs/design/DS_A22_CONCEPT_MONITOR_AND_ASKSET.md`. Instrument

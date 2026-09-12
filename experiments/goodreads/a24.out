@@ -1,0 +1,36 @@
+=== 13:05:51 GR ep01 broad ===
+[13:07:06] [G2] LEAK CHECK PASS: eval on users[-1500:], the slice concept_train_v2:248 removes from training
+[13:08:22] [drop=1,scramble=0] AGG m0=0.1870+-0.0023 m1=0.1910+-0.0018 m4=0.1883+-0.0005 m8=0.1804+-0.0020
+[13:09:36] [drop=0,scramble=0] AGG m0=0.1846+-0.0005 m1=0.1882+-0.0007 m4=0.1873+-0.0005 m8=0.1891+-0.0009
+[13:10:51] [drop=0,scramble=1] AGG m0=0.1846+-0.0005 m1=0.1887+-0.0006 m4=0.1879+-0.0013 m8=0.1867+-0.0006
+=== 13:10:51 GR ep01 broad no_refusals ===
+[13:12:07] [G2] LEAK CHECK PASS: eval on users[-1500:], the slice concept_train_v2:248 removes from training
+[13:13:23] [drop=1,scramble=0] AGG m0=0.1870+-0.0023 m1=0.1862+-0.0015 m4=0.1839+-0.0018 m8=0.1782+-0.0026
+[13:14:37] [drop=0,scramble=0] AGG m0=0.1846+-0.0005 m1=0.1845+-0.0012 m4=0.1831+-0.0005 m8=0.1851+-0.0009
+[13:15:51] [drop=0,scramble=1] AGG m0=0.1846+-0.0005 m1=0.1850+-0.0004 m4=0.1844+-0.0008 m8=0.1831+-0.0007
+=== 13:15:52 ML ep11 broad ===
+[13:17:22] [G2] LEAK CHECK PASS: eval on users[-1500:], the slice concept_train_v2:248 removes from training
+[13:18:39] [drop=1,scramble=0] AGG m0=0.1791+-0.0021 m1=0.1818+-0.0007 m4=0.1809+-0.0034 m8=0.1812+-0.0062
+[13:19:53] [drop=0,scramble=0] AGG m0=0.1842+-0.0028 m1=0.1871+-0.0038 m4=0.1866+-0.0024 m8=0.1879+-0.0062
+[13:21:07] [drop=0,scramble=1] AGG m0=0.1842+-0.0028 m1=0.1821+-0.0026 m4=0.1727+-0.0028 m8=0.1646+-0.0041
+=== 13:21:07 ML ep11 broad no_refusals ===
+[13:22:36] [G2] LEAK CHECK PASS: eval on users[-1500:], the slice concept_train_v2:248 removes from training
+[13:23:53] [drop=1,scramble=0] AGG m0=0.1791+-0.0021 m1=0.1809+-0.0009 m4=0.1808+-0.0022 m8=0.1811+-0.0061
+[13:25:06] [drop=0,scramble=0] AGG m0=0.1842+-0.0028 m1=0.1858+-0.0033 m4=0.1855+-0.0017 m8=0.1866+-0.0065
+[13:26:20] [drop=0,scramble=1] AGG m0=0.1842+-0.0028 m1=0.1809+-0.0020 m4=0.1714+-0.0029 m8=0.1614+-0.0018
+=== 13:26:21 GR ep01 equal-answer ===
+[13:27:36] [G2] LEAK CHECK PASS: eval on users[-1500:], the slice concept_train_v2:248 removes from training
+[13:29:16] [drop=1,scramble=0] AGG m0=0.1870+-0.0023 m8=0.1824+-0.0024 m16=0.1766+-0.0034 m22=0.1670+-0.0030 m32=0.1599+-0.0021
+[13:30:52] [drop=0,scramble=0] AGG m0=0.1846+-0.0005 m8=0.1874+-0.0008 m16=0.1880+-0.0008 m22=0.1860+-0.0016 m32=0.1846+-0.0015
+[13:32:28] [drop=0,scramble=1] AGG m0=0.1846+-0.0005 m8=0.1870+-0.0009 m16=0.1853+-0.0012 m22=0.1839+-0.0025 m32=0.1826+-0.0034
+=== 13:32:28 GR ep01 topN:61 ===
+[13:33:44] [G2] LEAK CHECK PASS: eval on users[-1500:], the slice concept_train_v2:248 removes from training
+[13:35:02] [drop=1,scramble=0] AGG m0=0.1870+-0.0023 m1=0.1838+-0.0039 m4=0.1624+-0.0033 m8=0.1381+-0.0007
+[13:36:17] [drop=0,scramble=0] AGG m0=0.1846+-0.0005 m1=0.1871+-0.0007 m4=0.1861+-0.0020 m8=0.1833+-0.0015
+[13:37:32] [drop=0,scramble=1] AGG m0=0.1846+-0.0005 m1=0.1872+-0.0012 m4=0.1825+-0.0017 m8=0.1821+-0.0025
+=== 13:37:33 GR ep01 band:61-200 ===
+[13:38:47] [G2] LEAK CHECK PASS: eval on users[-1500:], the slice concept_train_v2:248 removes from training
+[13:40:03] [drop=1,scramble=0] AGG m0=0.1870+-0.0023 m1=0.1925+-0.0058 m4=0.1904+-0.0041 m8=0.1884+-0.0027
+[13:41:17] [drop=0,scramble=0] AGG m0=0.1846+-0.0005 m1=0.1888+-0.0013 m4=0.1877+-0.0010 m8=0.1863+-0.0018
+[13:42:33] [drop=0,scramble=1] AGG m0=0.1846+-0.0005 m1=0.1890+-0.0007 m4=0.1873+-0.0018 m8=0.1867+-0.0007
+=== 13:42:33 A24 COMPLETE ===
