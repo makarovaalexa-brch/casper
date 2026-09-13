@@ -526,17 +526,16 @@ global information-gain static order at four questions or fewer, BALD's acquisit
 a homoscedastic linear-Gaussian likelihood, and A-optimal design contains the questions and not the
 answers. Twelve of the twenty-three arms are value-free in that sense.
 
-\paragraph{Exactly one rule optimises the reported metric.}
-Auditing what each rule maximises gives the plainest explanation. Of the twenty-one distinct
-selection rules the battery implements, exactly one optimises held-out ranking quality, and it is our
-static order. The published rules maximise information gain about a latent variable~\cite{ma2019eddi}
+\paragraph{No published rule optimises the reported metric.}
+Auditing what each rule maximises gives the plainest explanation. None of the published rules in the
+battery optimises held-out ranking quality. They maximise information gain about a latent variable~\cite{ma2019eddi}
 or a cluster label~\cite{rashid2008learning}, minimise posterior
 variance~\cite{houlsby2011bald} or an A-optimality trace~\cite{anava2015budget,sepliarskaia2018spq},
 reduce squared error of rating~\cite{golbandi2011adaptive,zhou2011functional} or profile
 reconstruction~\cite{kweon2020deep,proissl2024greedyslim}, or maximise a bandit
 index~\cite{zhao2013interactive,zhang2020conucb,wang2023conlinucb,liu2025clisk,parapar2021dpe}.
-Optimising a surrogate is not a defect in itself, but six of the thirteen claimed a ranking
-improvement on a held-out ranking metric, so holding them to NDCG@10 holds them to their own headline.
+Optimising a surrogate is not a defect in itself, but five of the thirteen reported a ranking metric, so holding
+them to NDCG@10 holds them to their own headline.
 
 \paragraph{Robustness.}
 The ordering repeats on RecVAE~\cite{ren2020recvae}, TaNP~\cite{lin2021tanp} and EDDI's
