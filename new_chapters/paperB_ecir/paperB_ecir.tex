@@ -390,9 +390,11 @@ weak consumer says more about the consumer than about the selector.
 \caption{The same two interviews, three consumers, 10{,}000 test users, full/tail NDCG@10. Only the
 consumer changes. A fourth, a conjugate accumulator, is omitted for space and gives
 $+0.00161^\star$ at $K{=}16$. The leaf model has no $K{=}16$ row ($3^k$ patterns fragment its
-cohort); $K{=}1$ is omitted, both arms asking the same question by construction. Consumers are
-scored with no popularity floor, so RecVAE, which ingests liked items only, scores near zero at low
-budgets as a property of its input contract rather than of the interview.}
+cohort); $K{=}1$ is omitted, both arms asking the same question by construction. RecVAE's low cells
+are an interface limit, not a property of the interview: it ingests a binary liked-item vector and
+cannot read concept answers at all, so the early budgets, which both interviews spend mostly on
+concepts, reach it as an empty input. Consumers are scored with no popularity floor, so a consumer
+given nothing is scored on what it predicts.}
 \label{tab:consumers}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
