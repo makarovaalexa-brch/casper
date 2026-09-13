@@ -227,7 +227,9 @@ that channel answerable where item questions are not.
 A question is answered from the user's own held-out ratings: an item question by their half-star level
 if they rated it, a concept question by a signed implicit-exposure statistic over their profile,
 $\log_2\!\big((n_c+\tfrac12)/(e_c+\tfrac12)\big)$, where $n_c$ is the number of the tag's items the
-user consumed and $e_c$ the number expected from their volume and the tag's popularity; a user with $e_c<1.5$ has had no exposure and refuses rather than dislikes. An asked question the user cannot answer forfeits its turn, folding as the encoder's
+user consumed and $e_c$ the number expected from their volume and the tag's popularity; a concept is answerable when the user has consumed at least two of its items and had enough
+exposure to have encountered them ($n_c\ge2$ and $e_c\ge1.5$); otherwise they refuse rather than
+dislike. An asked question the user cannot answer forfeits its turn, folding as the encoder's
 unseen-exposure or refusal token, so a question the user cannot answer still consumes a turn. Answers
 are read from a per-user lookup built with that user's held-out targets removed and asserted at run
 time to contain none of them, and an answered item is outside the candidate pool, so no answer can
@@ -272,10 +274,10 @@ consumed two of the items carrying the tag, rather than one specific item. We ho
 at the greedy static order and vary only what is in the bank.
 
 \paragraph{Enlarging the bank improves cold-start ranking.}
-On the same cohort at the same budget, with every order selected under the scoring contract,
-enlarging the bank from items to items plus concept questions improves full NDCG@10 by
-$+0.01430^\star$ $[+0.01124,+0.01739]$ and tail by $+0.02199^\star$, with no conditioning of any
-kind. That is $16.6\%$ of the static order's own improvement over asking nothing. \emph{The mechanism is the answer rate, and it is not breadth.} The prefix-optimal joint
+Enlarging the bank from items to items plus concept questions improves full NDCG@10 by
+$+0.01430^\star$ $[+0.01124,+0.01739]$ and tail by $+0.02199^\star$, with no conditioning of any kind
+-- $16.6\%$ of the static order's own improvement over asking nothing. Both orders are selected under
+the scoring contract on the same cohort at the same budget. \emph{The mechanism is the answer rate, and it is not breadth.} The prefix-optimal joint
 sequence gives concepts ten of sixteen slots and both of the first two, the tree opens on a concept,
 and at sixteen questions the two single channels tie on full ($-0.00003$ $[-0.00315,+0.00310]$) while
 concepts win the tail ($+0.01436^\star$). That tie is two effects cancelling: lift over the
@@ -319,7 +321,8 @@ sixteen questions. Seven of the eight $K\ge2$ intervals exclude zero in CASPER's
 tail at two questions, excludes zero against it.
 
 \paragraph{One variable changed.}
-The mechanism claim is about one variable, so we vary that one
+Only the scalar a question is scored by separates CASPER from the published criteria, so that is the
+one thing we vary
 (Table~\ref{tab:criterion}): same tree code, branch rule, minimum leaf size, answer contract, recommender, candidate mask, pool, cohorts and budget, with the split criterion replaced by each
 published alternative in turn, each scored through its own second-order split gain with nothing
 sampled (the pairwise loss sums over all $137{,}591{,}707$ fold-in pairs). Two shuffle controls
@@ -416,7 +419,8 @@ RecVAE & CASPER & $.0428/.0152$ & $.1016/.0399$ & $.1265/.0527$ & $.1769/.0764$ 
 
 
 \paragraph{Criterion regret at real states.}
-At every node it visits, the tree of Section~\ref{sec:rq2} persists the exact measured cohort-mean
+The surrogates can be scored directly against the quantity they stand in for. At every node it
+visits, the tree persists the exact measured cohort-mean
 NDCG@10 gain of every candidate over that node's own users: 22 nodes by roughly 1{,}000 candidates of
 ground truth for the quantity each criterion approximates. We score three against it
 (Table~\ref{tab:criterion}): Golbandi's within-node rating variance~\cite{golbandi2011adaptive}, Hu
