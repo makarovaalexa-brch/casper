@@ -552,9 +552,9 @@ NDCG@10 at any budget, and the shortfall is not a failure to branch.
 
 Answer values are behavioural throughout; the modelling assumption is the answerability judgement,
 for which we take having rated the item. A behavioural answer is one the user once gave rather than
-one they would give in conversation, and that gap is not measured here. Results are on one dataset
-and one recommender, so the criterion-regret measurement in particular would need a second certified
-recommender before it is known to generalise. Our comparator has no published counterpart, since no
+one they would give in conversation, and that gap is not measured here. Results are on one dataset. The selector comparison repeats across four further consumers of the
+answers, but the measured gains the criterion-regret table scores against are computed through the
+certified recommender alone. Our comparator has no published counterpart, since no
 prior work reports a static order built by greedily maximising cohort-mean held-out NDCG@10; the recipe is deterministic, and the search it receives is noted with the results it produces
 (Table~\ref{tab:battery}).
 
