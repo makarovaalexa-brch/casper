@@ -199,8 +199,7 @@ We use the strong-generalisation split of Liang et al.~\cite{liang2018variationa
 MovieLens-25M~\cite{harper2015movielens}, the most recent stable MovieLens release carrying both
 ratings and the Tag Genome that the concept channel needs, restricted to the project catalogue: 18{,}359
 train-vocabulary items, 140{,}768 train / 10{,}000 validation / 10{,}000 test users, per-user 80/20
-fold-in/target, seed 98765. All orders and trees were fitted on the 10{,}000 validation users and
-scored once on the disjoint 10{,}000 test users. The metric is full and tail NDCG@10, the tail
+fold-in/target, seed 98765. The metric is full and tail NDCG@10, the tail
 measured on a head-deleted candidate list under the short-head definition of Cremonesi et
 al.~\cite{cremonesi2010performance}, scored with the recommender's learned decoder bias. The full catalogue is ranked with no negative sampling, since sampled ranking metrics do not
 preserve the ordering of methods~\cite{krichene2020sampled}, and a model that received no answer is
