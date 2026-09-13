@@ -76,7 +76,12 @@ GLOBAL_JSON = os.path.join(OUTDIR, "greedy_static_i26c.json")
 
 TOTAL_L = 16
 BUDGETS = (1, 2, 4, 8, 16)
-CHANNELS = {"items": ("items-only", 0), "concepts": ("concepts-only", 1)}
+# `combined` builds the WHOLE 1,000-candidate pool, of which items-only and concepts-only are the
+# two blocks. It is the order both headline comparisons are measured against, and on ml-25m it was
+# built before this script existed, so the channel was never added here. chan=None means "no
+# channel filter"; it also has nothing to transplant a seed from, since it IS the source build.
+CHANNELS = {"items": ("items-only", 0), "concepts": ("concepts-only", 1),
+            "combined": ("combined", None)}
 
 SUPERSEDES = (
     "This order SUPERSEDES the '{arm}' arm of greedy_static_i26c.json. That arm was SELECTED under "
@@ -227,9 +232,13 @@ def main():
     assert len(rows) == want_n, f"cohort is {len(rows)} users, expected {want_n}"
 
     combined_pool, item_pool, conc_pool = build_pool(E, args.n_items, args.n_concepts)
-    sub_pool = item_pool if chan == 0 else conc_pool
-    assert len(sub_pool) == (args.n_items if chan == 0 else args.n_concepts)
-    assert all(int(q[0]) == chan for q in sub_pool)
+    if chan is None:
+        sub_pool = combined_pool
+        assert len(sub_pool) == args.n_items + args.n_concepts
+    else:
+        sub_pool = item_pool if chan == 0 else conc_pool
+        assert len(sub_pool) == (args.n_items if chan == 0 else args.n_concepts)
+        assert all(int(q[0]) == chan for q in sub_pool)
     log(f"[pool] {len(sub_pool)} {args.channel}-only candidates (the {arm} block of the combined "
         f"{len(combined_pool)}-candidate pool, same ids, same order). NO truncation: this IS the "
         f"full declared bank.")
@@ -248,8 +257,12 @@ def main():
         log(f"[seed/{args.channel}] a sidecar already exists at {os.path.relpath(HEAP, _ROOT)} -- "
             f"greedy_certified's own guard decides whether it may be resumed")
     else:
-        transplant_seed(E, rows, sub_pool, combined_pool, args.objective, HEAP, args.verify_n,
-                        args.channel)
+        if chan is None:
+            log(f"[seed/combined] this IS the source build -- paying the full "
+                f"{len(sub_pool)}-candidate cold seed pass, nothing to transplant from")
+        else:
+            transplant_seed(E, rows, sub_pool, combined_pool, args.objective, HEAP,
+                            args.verify_n, args.channel)
 
     part = json.load(open(PARTIAL)) if os.path.exists(PARTIAL) else {}
     t0 = time.time()
