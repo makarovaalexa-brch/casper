@@ -67,8 +67,35 @@ both maximise a quantity the model *estimates*, per user, at selection time. Non
 reports a comparison against a question order built by maximising the **measured held-out** value of
 the metric it reports.
 
-## Still to extract
+## The remaining five, resolved 2026-09-13
 
-Golbandi WSDM'11, Rashid 2002/2008, fMF SIGIR'11, ConUCB WWW'20, Sepliarskaia RecSys'18. The archive
-notes Sepliarskaia *"never compares against"* something -- chase that line. The pattern is already
-clear from nine of fourteen, but the paper should not print a count until all are checked.
+Four are settled by the metric audit without needing their experiment sections: a paper that reports
+**only** RMSE, MAE or cumulative regret cannot have compared against an NDCG-optimised question order,
+because it never computes NDCG. From `baseline_reported_metrics.md`:
+
+| method | reports | therefore |
+|---|---|---|
+| Golbandi, WSDM'11 | RMSE only, no ranking metric anywhere | cannot have a metric-optimised comparator |
+| Rashid 2002/2008 (entropy0, HELF, IGCN) | MAE, #seen, Expected Utility | same |
+| fMF, Zhou SIGIR'11 | RMSE only | same |
+| ConUCB, WWW'20 | cumulative regret | same |
+
+The fifth, **Sepliarskaia et al. RecSys'18**, does report P@10 and so needed checking. From
+`adaptive_elicitation_baselines.md` corrections list: *"**Sepliarskaia never compares against
+Golbandi**, ties everything below 5 questions, and attributes the tree's loss to **its objective rather
+than to staticness**."*
+
+⭐ That last clause is a third external statement of our thesis, from 2018 — alongside Greedy SLIM's
+*"RMSE is not a good measure for the performance of top-N recommender systems"* and its exclusion of
+two baselines it could not reproduce.
+
+## Verdict
+
+**All fourteen checked. None reports a comparison against a question order built by maximising the
+measured held-out value of the metric it reports.** The two nearest — DPE's `Greedy` and Lin et al.'s
+greedy NDCG attribute selector — both maximise a quantity the model *estimates* for the current user at
+selection time, not a measured cohort-level outcome. The rest compare against random, popularity, a
+rating-prediction model, or other methods from the same family.
+
+One further datum, from the closest protocol sibling: Greedy SLIM implemented Golbandi and
+Sepliarskaia, obtained poor results, and excluded them from its official experiments.
