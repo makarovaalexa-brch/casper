@@ -113,3 +113,35 @@ held-out, our conjunction claim needs rewriting, not just narrowing.
 
 The sweep is **still not complete** — these two passes covered the attribute-tree and CRS/NDCG axes.
 Not yet covered: bandit/active-learning elicitation 2024–2026, LLM elicitation, UMAP/CIKM/ECIR venues.
+
+---
+
+# THIRD PASS (2026-09-13): the remaining axes. Nothing competing.
+
+The first two passes covered attribute-trees and CRS/NDCG selectors and each found something material
+(Gharahighehi 2025, Lin WWW'23 — both now cited in Paper B). This pass covers what was left.
+
+**Bandit / active-learning cold start, 2025–26.** The recent work is overwhelmingly *item* cold start
+rather than user onboarding: MoToRec (AAAI'26), M2VAE (AAAI'26), MI4Rec (CIKM'25), epistemic-uncertainty
+cold start (CIKM'25), item-centric exploration (RecSys'25). Adjacent but a different problem — none
+selects questions for a new user or reports a post-interview held-out ranking. Also seen:
+*Active learning-based multi-armed bandits for recommendation systems* (KAIS 2025) and
+*Batch versus Sequential Active Learning for Recommender Systems* (arXiv 2201.07571), neither of which
+compares against a metric-optimised question order.
+
+**LLM elicitation, 2025–26.** Also non-competing on our contract. Nearest items:
+- **PrefDisco** (Li et al., 2026): frontier models fail at proactive elicitation, 29% of attempts
+  *worsen* alignment against generic responses. A useful citation for the LLM-elicitation sentence, not
+  a rival method.
+- *A Human-Centred Framework for Retrieval-Grounded Cold-Start Recommendation* (CEUR) and
+  *Supporting High-Stakes Decision Making Through Interactive Preference Elicitation in the Latent
+  Space* (ICLR'26): interactive elicitation, but not cold-start question selection scored on a full
+  catalogue.
+- *Minimizing Live Experiments in Recommender Systems* (arXiv 2409.17436, 2024): evaluation
+  methodology for elicitation policies; relevant to our contract framing, already logged in pass two.
+
+**Verdict.** Three passes. Two material finds, both folded into the paper. On the remaining axes
+nothing was found that selects cold-start questions and measures the result on a held-out ranking
+metric against a strong comparator. The honest statement is now "swept on four axes, two hits, both
+cited" rather than "there is nothing newer" — venues were searched by topic, not enumerated
+proceeding by proceeding.
