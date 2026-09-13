@@ -432,22 +432,12 @@ of 1{,}000 and the pairwise loss 75th; one level down, no criterion does better 
 agree with the metric where the cohort is largest and stop agreeing where an adaptive method must
 earn its keep.
 
-\paragraph{How much is there to adapt to.}
-If adaptive selection is to confer a benefit, users must occupy states in which different questions
-are optimal. We score each question by $U(q\mid\zz)=\sum_a P(a\mid\zz)\,V(\zz\oplus(q,a))$, with $V$
-the expected NDCG@10 of the slate the recommender would show, and report the perplexity of the argmax
-distribution: an effective number of distinct optimal questions. Over the concept bank the 10{,}000 cold users share a single optimal question (effective $1.00$); after one standard opener five are optimal (effective $2.88$), and after two, nine (effective $5.04$). Dispersion is not payoff: a policy can produce ten thousand distinct interviews and still lose, as Section~\ref{sec:rq3} shows for Thompson sampling.
-
-\paragraph{Answer to RQ3, second half.}
-The published criteria are close to uninformative about the reported metric at the states an
-interview visits, and after two questions there are roughly five materially different questions to
-choose between.
-
 \paragraph{Answer to RQ2.}
 Substituting the measured metric for the published criterion inside Golbandi's interview tree,
-everything else held fixed, places the interview above the static order from four questions onward on
-both axes ($+0.01035$ full, $+0.00705$ tail at sixteen), where the five published criteria remain
-below it by three times that margin.
+everything else held fixed, places the interview above the static order from four questions onward
+on both axes ($+0.01035$ full, $+0.00705$ tail at sixteen), where the five published criteria remain
+below it by three times that margin. They remain below it because they are close to uninformative
+about the reported metric at the states an interview visits.
 
 \section{RQ3: Why This Had Not Been Observed}
 \label{sec:rq3}
