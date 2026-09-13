@@ -11,7 +11,7 @@ no leaked references, every supervisor comment 4–24 addressed and committed.
 
 ## P0 — the moment the box frees, before anything else
 
-- [ ] **T6 · A better independent consumer.** The consumers table currently compares our tower against
+- [x] **T6 (DONE 09-13) · A better independent consumer.** The consumers table currently compares our tower against
   RecVAE, which is our own ancestor (the tower freezes a RecVAE decoder and initialises from it), so
   the comparison can only go one way. `run_interview_table.py:90` already registers
   `rbmf`, `tanp`, `eddi` — independent, and TaNP and Partial-VAE are already trusted in the paper's
@@ -74,3 +74,23 @@ competing on the remaining axes), T4 (opener flips), T5 (full answerability gate
 it is at depth 7 where ML-25M stopped at 5, and the min-leaf rule is the only stopping rule. The 73%
 refusal rate keeps sending most of the cohort down `noanswer` branches that stay above 200 users, so
 the tree keeps finding legal splits. No way to predict the end from here.
+
+
+## Closed 2026-09-13 — everything except T3
+
+**T6 done, with a negative outcome that is itself the answer.** RBMF reproduces RecVAE's pathology
+exactly (.0001 at k=1); TaNP and EDDI have no liang-split checkpoints and were never built for it.
+RecVAE is representative rather than badly chosen: nearly every published cold-start consumer takes an
+item vector and cannot read a concept answer. Golbandi's leaf model is the sole exception
+(`CONSUMES_UNKNOWNS`). Table unchanged, caption gains one clause.
+Full: `docs/results/A27_INDEPENDENT_CONSUMERS.md`.
+
+**Paper state:** 11.76 content pages of 12, 15 total, clean build, no leaked references, every
+supervisor comment 4–24 addressed. **T1, T2, T4, T5, T6 all closed. Only T3 (repo mirror) remains,
+on hold by instruction.**
+
+**T7 (Goodreads) is a separate workstream, not a finalisation blocker.** The tree finished at 16:42
+after 950.6 min: depth 11, 176 nodes, 116 leaves. On the VALIDATION cohort it beats the combined
+static order by **+0.03168 full / +0.01402 tail at K=16**, three times ML-25M's +0.01035 — but
+validation overstates (ML-25M's own validation figure was +0.02794 against +0.01035 on test), so this
+means nothing until the policy-B orders and the two test evaluations are run (~7 h).
