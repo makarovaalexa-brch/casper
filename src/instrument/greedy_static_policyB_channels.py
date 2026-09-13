@@ -70,7 +70,11 @@ from ndcg_tree import build_pool, leak_assert, read_global, RULER_NOTE
 # CASPER_DATASET). Was hardcoded here, so a Goodreads run would have written on top of the
 # certified ML-25M tree/greedy artifacts -- HARD RULE 11e.
 from run_battery_phaseA import OUTDIR                  # noqa: E402
-TREE_HEAPS = os.path.join(OUTDIR, "ndcgtree_heaps")
+# The tree root's search heap IS the 1,000-candidate seed pass these channel builds transplant.
+# It was hardcoded to the default tree label; a tree grown with --label ndcgtree16 (the K=16 tree
+# the paper reports) writes ndcgtree16_heaps instead, so take whichever exists.
+_TH = [os.path.join(OUTDIR, d) for d in ("ndcgtree16_heaps", "ndcgtree_heaps")]
+TREE_HEAPS = next((d for d in _TH if os.path.exists(os.path.join(d, "node_root.json"))), _TH[-1])
 ROOT_HEAP = os.path.join(TREE_HEAPS, "node_root.json")      # VALIDATION only -- see transplant_seed
 GLOBAL_JSON = os.path.join(OUTDIR, "greedy_static_i26c.json")
 
