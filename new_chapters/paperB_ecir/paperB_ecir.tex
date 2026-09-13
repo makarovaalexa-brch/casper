@@ -45,15 +45,17 @@ A cold-start recommender asks a new user a few questions before it can recommend
 govern the result: which questions the system is able to ask, and how it selects the next one. We
 study both under a single measurement contract on one strong recommender, with answers read from
 users' own recorded ratings and with a question the user cannot answer still consuming a turn.
-On the first, enlarging the question bank from items to items plus \emph{concept questions} -- tag-level
-attributes answerable by any user who has consumed two of the items carrying the tag, rather than one
-specific item -- improves full NDCG@10 by $+0.01430$ at sixteen questions on 10{,}000 held-out users with no conditioning of any
-kind, because sixteen concept questions obtain 12.36 answers where sixteen item questions obtain 3.11. On the second, CASPER (Cold-start Adaptive Selection for Preference Elicitation in
-Recommendation) scores each candidate question by the held-out NDCG@10 that asking it actually
-produces, measured by folding real answers through the recommender. Holding the tree, the search and
-the data fixed and replacing only that scalar, five published split criteria leave the interview
-below a strong fixed question order and only the measured metric raises it above:
-$+0.01035$ full NDCG@10. Two further results explain why this had not been observed. Published split
+On the first, enlarging the question bank from items to items plus \emph{concept questions} --
+tag-level attributes that generalise over their member items, so a user can answer one without
+having consumed any specific item -- improves full NDCG@10 by $+0.01430$ at sixteen questions on
+10{,}000 held-out users with no conditioning of any kind, because sixteen concept questions obtain
+12.36 answers where sixteen item questions obtain 3.11. On the second, only a rule that selects on
+the metric the system is judged on places an adaptive interview above a strong fixed question order:
+with the tree, the search and the data held fixed, five published split criteria leave the interview
+below that order and the measured metric raises it above, by $+0.01035$ full NDCG@10. Our selector,
+CASPER (Cold-start Adaptive Selection for Preference Elicitation in Recommendation), scores each
+candidate by the held-out NDCG@10 that asking it produces, measured by folding real answers through
+the recommender. Two further results explain why this had not been observed. Published split
 criteria are close to uninformative about the metric they stand in for, correlating with measured
 NDCG@10 gains at $+0.010$, $-0.060$ and $-0.104$ and recovering $11$--$34\%$ of the gain a uniformly
 random choice leaves unrealised. And in a re-implementation of thirteen published methods under one
