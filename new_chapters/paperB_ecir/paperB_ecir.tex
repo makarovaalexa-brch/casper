@@ -390,14 +390,14 @@ weak consumer says more about the consumer than about the selector.
 
 \begin{table}[tbp]
 \centering
-\caption{The same two interviews, three consumers, 10{,}000 test users, full/tail NDCG@10. Only the
+\caption{The same two interviews, four consumers, 10{,}000 test users, full/tail NDCG@10. Only the
 consumer changes. A fourth, a conjugate accumulator, is omitted for space and gives
 $+0.00161^\star$ at $K{=}16$. The leaf model has no $K{=}16$ row ($3^k$ patterns fragment its
 cohort); $K{=}1$ is omitted, both arms asking the same question by construction. RecVAE's low cells
 are an interface limit, not a property of the interview: it ingests a binary liked-item vector and
 cannot read concept answers at all, so the early budgets, which both interviews spend mostly on
-concepts, reach it as an empty input. This is general rather than particular to RecVAE: RBMF, the
-other item-only consumer we ran, reads $.0001$ at the same budgets. Consumers are scored with no
+concepts, reach it as an empty input. RBMF is shown alongside it because it is the other item-only consumer and fails identically, so
+the pattern is the input contract rather than one model. Consumers are scored with no
 popularity floor, so a consumer given nothing is scored on what it predicts.}
 \label{tab:consumers}
 \footnotesize
@@ -414,6 +414,9 @@ Golbandi leaf & CASPER & $.1745/.0393$ & $.1858/.0526$ & $.1964/.0592$ & --- \\
 \midrule
 RecVAE & CASPER & $.0428/.0152$ & $.1016/.0399$ & $.1265/.0527$ & $.1769/.0764$ \\
  & static & $.0000/.0000$ & $.0662/.0130$ & $.1162/.0317$ & $.1357/.0409$ \\
+\midrule
+RBMF & CASPER & $.0409/.0106$ & $.0908/.0310$ & $.1106/.0405$ & $.1448/.0595$ \\
+ & static & $.0001/.0001$ & $.0619/.0128$ & $.1025/.0238$ & $.1196/.0352$ \\
 \bottomrule
 \end{tabular}
 \end{table}
