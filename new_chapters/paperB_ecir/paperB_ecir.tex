@@ -212,8 +212,7 @@ criterion's gain in the ablation (Table~\ref{tab:criterion}). Every other interv
 
 \paragraph{The instrument.}
 The frozen recommender every arm is scored with is a two-tower set encoder that ingests an
-arbitrary-length, mixed-channel evidence set with no per-user gradient step, certified against four
-requirements: frontier parity on a full profile, an open set-valued input interface, a rising
+arbitrary-length, mixed-channel evidence set with no per-user gradient step, validated against four requirements: frontier parity on a full profile, an open set-valued input interface, a rising
 cold-start curve on both axes, and identity with the frozen decoder at the empty
 interview~\cite{anon_instrument}. It reaches full/tail NDCG@10 $0.3496/0.2491$ against a RecVAE bar~\cite{ren2020recvae} of
 $0.3540/0.2497$ rebuilt here, indistinguishable on the tail (paired interval spanning zero) and
@@ -382,9 +381,9 @@ banked interviews to three further consumers without regrowing or reselecting an
 RecVAE~\cite{ren2020recvae}, a conjugate belief accumulator over a frozen factorisation, and
 Golbandi's leaf model~\cite{golbandi2011adaptive}. CASPER leads the static order on three of the
 four, all intervals excluding zero, and reverses on the leaf model at eight questions
-($-0.01375^\star$). The larger effect is on the level rather than the ordering: every cell of the
-certified tower's block exceeds every cell of every other block at the same budget, and CASPER on
-the leaf model reaches $.1964$ at eight questions where it reaches $.2492$ on the certified tower.
+($-0.01375^\star$). The larger effect is on the level rather than the ordering: every cell of
+our recommender's block exceeds every cell of every other block at the same budget, and CASPER on
+the leaf model reaches $.1964$ at eight questions where it reaches $.2492$ on ours.
 Choosing the consumer is worth two to four points where choosing the selector is worth one, so the
 recommender that consumes the answers should be established first: a selection result read off a
 weak consumer says more about the consumer than about the selector.
@@ -392,11 +391,9 @@ weak consumer says more about the consumer than about the selector.
 \begin{table}[tbp]
 \centering
 \caption{The same two interviews, five consumers, 10{,}000 test users, full/tail NDCG@10. Only the
-consumer changes. The leaf model has no $K{=}16$ row ($3^k$ patterns fragment its cohort); $K{=}1$ is
-omitted, both arms asking the same question by construction. RecVAE and RBMF ingest an item vector
-and cannot read concept answers, so the budgets spent on concepts reach them as an empty input --
-an interface limit shared by both, not a property of the interview. No popularity floor: a consumer
-given nothing is scored on what it predicts.}
+consumer changes. The leaf model has no $K{=}16$ row; $K{=}1$ is omitted, both arms asking the same
+question by construction. RecVAE and RBMF ingest an item vector and cannot read concept answers, so
+budgets spent on concepts reach them as empty input. No popularity floor.}
 \label{tab:consumers}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -404,7 +401,7 @@ given nothing is scored on what it predicts.}
 \toprule
 consumer & interview & $K{=}2$ & $K{=}4$ & $K{=}8$ & $K{=}16$ \\
 \midrule
-certified tower & CASPER & $\mathbf{.2015}/.0675$ & $\mathbf{.2267/.0905}$ & $\mathbf{.2492/.1117}$ & $\mathbf{.2694/.1307}$ \\
+our recommender & CASPER & $\mathbf{.2015}/.0675$ & $\mathbf{.2267/.0905}$ & $\mathbf{.2492/.1117}$ & $\mathbf{.2694/.1307}$ \\
  & static & $.1962/\mathbf{.0701}$ & $.2178/.0857$ & $.2386/.1033$ & $.2590/.1237$ \\
 \midrule
 Golbandi leaf & CASPER & $.1745/.0393$ & $.1858/.0526$ & $.1964/.0592$ & --- \\
@@ -465,14 +462,12 @@ comparator for those selectors is the greedy items-only sequence; the combined s
 \begin{table}[tbp]
 \centering
 \caption{The battery: one contract, 10{,}000 test users, full catalogue, full/tail NDCG@10.
-Twenty-three arms were measured. ans@16 is the mean number of the sixteen questions a user could
-answer; the answer-free popularity reference is $.1626/.0262$. Bold is best per column, excluding
-the oracle. $^\star$ an interval excluding zero; $^\S$ value-free, responding only to which
-questions were answerable; $^\dagger$ a reduced latent-only acquisition, not the published EDDI
-criterion. Golbandi's tree has no $k{=}16$ row: $3^k$ answer patterns fragment its cohort beyond
-depth eight. CASPER and the greedy orders receive a metric search no ported arm receives
-(Section~\ref{sec:contract}); Table~\ref{tab:criterion} is the comparison where every criterion
-receives it.}
+Twenty-three arms measured; ans@16 is the mean number of the sixteen questions a user could answer;
+answer-free popularity reference $.1626/.0262$. Bold is best per column, excluding the oracle.
+$^\star$ interval excluding zero; $^\S$ value-free; $^\dagger$ a reduced latent-only acquisition,
+not the published EDDI criterion. Golbandi's tree has no $k{=}16$ row ($3^k$ patterns fragment its
+cohort). CASPER and the greedy orders receive a metric search no ported arm receives; the
+comparison where every criterion receives it is Table~\ref{tab:criterion}.}
 \label{tab:battery}
 \footnotesize
 \setlength{\tabcolsep}{2.5pt}
@@ -580,17 +575,18 @@ NDCG@10 at any budget, and the shortfall is not a failure to branch.
 Answer values are behavioural throughout; the modelling assumption is the answerability judgement,
 for which we take having rated the item. A behavioural answer is one the user once gave rather than
 one they would give in conversation, and that gap is not measured here. Results are on one dataset. The selector comparison repeats across four further consumers of the
-answers, but the measured gains the criterion-regret table scores against are computed through the
-certified recommender alone. Our comparator has no published counterpart, since no
+answers, but the measured gains the criterion-regret table scores against are computed through our
+recommender alone. Our comparator has no published counterpart, since no
 prior work reports a static order built by greedily maximising cohort-mean held-out NDCG@10; the recipe is deterministic, and the search it receives is noted with the results it produces
 (Table~\ref{tab:battery}).
 
 \medskip\noindent
-Put the reported metric into the split criterion and the field's own interview tree rises above a
-strong static order ($+0.01035$ at sixteen questions), where five published criteria fitted by the
-same search do not; change what the system asks about rather than how it chooses, and the gain is
-larger still ($+0.01430$). Build the selector around the quantity that will be reported, and certify
-its consumer.
+Put the reported metric into the split criterion and Golbandi's interview tree rises above a strong
+static order ($+0.01035$ at sixteen questions), where five published criteria fitted by the same
+search do not; change what the system asks about rather than how it chooses, and the gain is larger
+still ($+0.01430$). Select questions by the metric the system is judged on rather than a surrogate
+for it, and establish the recommender that consumes the answers first: changing it moved our numbers
+further than changing the selector did.
 
 \bibliographystyle{splncs04}
 \bibliography{refs}
