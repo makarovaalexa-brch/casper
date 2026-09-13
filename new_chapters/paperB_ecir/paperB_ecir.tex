@@ -391,9 +391,8 @@ weak consumer says more about the consumer than about the selector.
 
 \begin{table}[tbp]
 \centering
-\caption{The same two interviews, four consumers, 10{,}000 test users, full/tail NDCG@10. Only the
-consumer changes; a fifth, a conjugate accumulator, is omitted and gives $+0.00161^\star$ at
-$K{=}16$. The leaf model has no $K{=}16$ row ($3^k$ patterns fragment its cohort); $K{=}1$ is
+\caption{The same two interviews, five consumers, 10{,}000 test users, full/tail NDCG@10. Only the
+consumer changes. The leaf model has no $K{=}16$ row ($3^k$ patterns fragment its cohort); $K{=}1$ is
 omitted, both arms asking the same question by construction. RecVAE and RBMF ingest an item vector
 and cannot read concept answers, so the budgets spent on concepts reach them as an empty input --
 an interface limit shared by both, not a property of the interview. No popularity floor: a consumer
@@ -416,6 +415,9 @@ RecVAE & CASPER & $.0428/.0152$ & $.1016/.0399$ & $.1265/.0527$ & $.1769/.0764$ 
 \midrule
 RBMF & CASPER & $.0409/.0106$ & $.0908/.0310$ & $.1106/.0405$ & $.1448/.0595$ \\
  & static & $.0001/.0001$ & $.0619/.0128$ & $.1025/.0238$ & $.1196/.0352$ \\
+\midrule
+conjugate accumulator & CASPER & $.1605/.0282$ & $.1614/.0323$ & $.1626/.0349$ & $.1641/.0400$ \\
+ & static & $.1600/.0267$ & $.1607/.0279$ & $.1613/.0283$ & $.1624/.0307$ \\
 \bottomrule
 \end{tabular}
 \end{table}
