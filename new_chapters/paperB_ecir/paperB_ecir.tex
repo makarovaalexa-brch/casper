@@ -45,11 +45,10 @@ A cold-start recommender asks a new user a few questions before it can recommend
 govern the result: which questions the system is able to ask, and how it selects the next one. We
 study both under a single measurement contract on one strong recommender, with answers read from
 users' own recorded ratings and with a question the user cannot answer still consuming a turn.
-On the first, enlarging the question bank from films to films plus \emph{concept questions} --
-tag-level generalisations a user can answer without having seen any particular film -- improves full
+On the first, enlarging the question bank from items to items plus \emph{concept questions} --
+tag-level generalisations a user can answer without having consumed any particular item -- improves full
 NDCG@10 by $+0.01430$ at sixteen questions on 10{,}000 held-out users with no conditioning of any
-kind, because sixteen concept questions obtain 12.36 answers where sixteen film questions obtain
-3.11. On the second, CASPER (Cold-start Adaptive Selection for Preference Elicitation in
+kind, because sixteen concept questions obtain 12.36 answers where sixteen item questions obtain 3.11. On the second, CASPER (Cold-start Adaptive Selection for Preference Elicitation in
 Recommendation) scores each candidate question by the held-out NDCG@10 that asking it actually
 produces, measured by folding real answers through the recommender. Holding the tree, the search and
 the data fixed and replacing only that scalar, five published split criteria leave the interview
@@ -103,10 +102,9 @@ do published selectors compare against a question order that maximises it?
 \noindent Our contributions are fourfold, and the first two are independent design choices rather
 than competing alternatives: one concerns what the system can ask, the other how it chooses.
 \begin{itemize}
-\item \textbf{A question bank that generalises.} Concept questions -- tag-level attributes answerable
-without having seen any particular film -- added to a film bank improve full NDCG@10 by $+0.01430$
+\item \textbf{A question bank that generalises.} Concept questions -- tag-level attributes answerable without having consumed any particular item -- added to an item bank improve full NDCG@10 by $+0.01430$
 and tail by $+0.02199$ with no conditioning of any kind. We identify the mechanism as the answer
-rate rather than the breadth of the question: a film answer carries $3.98\times$ the value of a
+rate rather than the breadth of the question: an item answer carries $3.98\times$ the value of a
 concept answer, and the concept channel obtains $3.98\times$ as many.
 \item \textbf{Selection on the measured metric.} CASPER (Cold-start Adaptive Selection for
 Preference Elicitation in Recommendation) scores each candidate by the held-out NDCG@10 that asking
@@ -218,15 +216,14 @@ $0.3540/0.2497$ rebuilt here, indistinguishable on the tail (paired interval spa
 $1.2\%$ short on the full profile, so elicitation is not measured against a weak
 recommender~\cite{dacrema2019progress,steck2019ease}. Its second channel folds concept questions: the
 1{,}031 MovieLens Tag Genome tags (``dark humour'', ``courtroom''), each a whitened centroid of its
-member films, answered with a signed behavioural affinity read from the user's watching. A concept
-generalises over films, so asking one presupposes nothing seen, which is what makes that channel
-answerable where film questions are not.
+member items, answered with a signed behavioural affinity read from the user's history. A concept generalises over items, so asking one presupposes no particular item, which is what makes that channel
+answerable where item questions are not.
 
 \paragraph{Answers and interface.}
 A question is answered from the user's own held-out ratings: an item question by their half-star level
-if they rated it, a concept question by a signed implicit-watch statistic over their profile,
-$\log_2\!\big((n_c+\tfrac12)/(e_c+\tfrac12)\big)$, where $n_c$ is the number of the tag's films the
-user watched and $e_c$ the number expected from their volume and the tag's popularity; a user with
+if they rated it, a concept question by a signed implicit-exposure statistic over their profile,
+$\log_2\!\big((n_c+\tfrac12)/(e_c+\tfrac12)\big)$, where $n_c$ is the number of the tag's items the
+user consumed and $e_c$ the number expected from their volume and the tag's popularity; a user with
 $e_c<1.5$ has had no exposure and refuses rather than dislikes. An asked question the user cannot answer forfeits its turn, folding as the encoder's
 unseen-exposure or refusal token, so a question the user cannot answer still consumes a turn. Answers
 are read from a per-user lookup built with that user's held-out targets removed and asserted at run
@@ -276,25 +273,21 @@ the interview above the static order.
 \section{RQ1: What the System Can Ask}
 \label{sec:rq1}
 
-The first lever is the question bank. A film question can only be answered by a user who has seen
-that film; a concept question -- a tag-level attribute such as ``dark humour'' or ``courtroom'' --
-generalises over films, so answering it presupposes nothing seen. We hold the selection rule fixed
+The first lever is the question bank. An item question can only be answered by a user who has consumed that item; a concept question -- a tag-level attribute such as ``dark humour'' or ``courtroom'' -- generalises over items, so answering it presupposes no particular item. We hold the selection rule fixed
 at the greedy static order and vary only what is in the bank.
 
 \paragraph{Enlarging the bank improves cold-start ranking.}
 On the same cohort at the same budget, with every order selected under the scoring contract,
-enlarging the bank from films to films plus concept questions improves full NDCG@10 by
+enlarging the bank from items to items plus concept questions improves full NDCG@10 by
 $+0.01430^\star$ $[+0.01124,+0.01739]$ and tail by $+0.02199^\star$, with no conditioning of any
 kind. That is $16.6\%$ of the static order's own improvement over asking nothing. \emph{The mechanism is the answer rate, and it is not breadth.} The prefix-optimal joint
 sequence gives concepts ten of sixteen slots and both of the first two, the tree opens on a concept,
 and at sixteen questions the two single channels tie on full ($-0.00003$ $[-0.00315,+0.00310]$) while
 concepts win the tail ($+0.01436^\star$). That tie is two effects cancelling: lift over the
-answer-free reference factorises into answers collected and lift per answer, and a film answer is
-worth $3.98\times$ a concept answer ($0.02771$ against $0.00697$) while the concept channel collects
-$3.98\times$ as many. Held to a matched number of answers the film channel wins, $+0.02734^\star$
-$[+0.02430,+0.03037]$ at $1.79$ against $1.75$ answers. Aggregating hundreds of films into one
-question \emph{dilutes} what its answer says; the channel wins anyway because two concept questions
-leave $11$ of $10{,}000$ users with nothing to say, where two film questions leave $5{,}779$.
+answer-free reference factorises into answers collected and lift per answer, and an item answer is worth $3.98\times$ a concept answer ($0.02771$ against $0.00697$) while the concept channel collects
+$3.98\times$ as many. Held to a matched number of answers the item channel wins, $+0.02734^\star$
+$[+0.02430,+0.03037]$ at $1.79$ against $1.75$ answers. Aggregating hundreds of items into one question \emph{dilutes} what its answer says; the channel wins anyway because two concept questions
+leave $11$ of $10{,}000$ users with nothing to say, where two item questions leave $5{,}779$.
 
 \paragraph{Where the gain does and does not reach.}
 Six of the fifteen leaves lose on test, covering $39.3\%$ of the cohort, because a leaf inherits
@@ -518,7 +511,7 @@ Thompson sampling conducts a distinct interview for every one of the 10{,}000 us
 question onward and still loses to one order asked of everybody; GLM-UCB reaches 5{,}739 distinct
 interviews by the sixteenth. Part of the mechanism is in the answered column: the static order collects 5.52 answers where
 Thompson collects 3.39 and the latent-only acquisition 3.84, because criteria preferring high
-posterior movement select items almost no user has seen. It is not the whole mechanism, since GLM-UCB collects
+posterior movement select items almost no user has consumed. It is not the whole mechanism, since GLM-UCB collects
 5.24 answers, essentially the static rate, and still loses at every budget. Several selectors carrying the adaptive label in Table~\ref{tab:battery}, which records how each
 method is described by its own authors, turn out not to condition on answers at all: IGCN is the
 global information-gain static order at four questions or fewer, BALD's acquisition is constant under
