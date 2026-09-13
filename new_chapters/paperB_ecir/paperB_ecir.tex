@@ -105,11 +105,12 @@ do published selectors compare against a question order that maximises it?
 \noindent Our contributions are fourfold, and the first two are independent design choices rather
 than competing alternatives: one concerns what the system can ask, the other how it chooses.
 \begin{itemize}
-\item \textbf{A question bank that generalises.} Concept questions -- tag-level attributes answerable by
-any user who has consumed two of the items carrying the tag, rather than one specific item -- added to an item bank improve full NDCG@10 by $+0.01430$ and tail by $+0.02199$ from a single fixed
+\item \textbf{A question bank that generalises.} Concept questions -- tag-level attributes we define as answerable when the user has consumed two of
+the items carrying the tag, rather than one specific item -- added to an item bank improve full NDCG@10 by $+0.01430$ and tail by $+0.02199$ from a single fixed
 question order asked of everybody. We identify the mechanism as the answer
 rate rather than the breadth of the question: an item answer carries $3.98\times$ the value of a
-concept answer, and the concept channel obtains $3.98\times$ as many.
+concept answer while the concept channel obtains $3.98\times$ as many, so the two channels tie and
+the gain is complementarity.
 \item \textbf{Selection on the measured metric.} CASPER (Cold-start Adaptive Selection for
 Preference Elicitation in Recommendation) scores each candidate by the held-out NDCG@10 that asking
 it produces. With the tree, search, data and budget held fixed, it is the only one of six criteria
@@ -267,9 +268,9 @@ they compare with a metric-optimised order unanswered.
 \section{RQ1: What the System Can Ask}
 \label{sec:rq1}
 
-The first lever is the question bank. An item question can only be answered by a user who has consumed that item; a concept question -- a
-tag-level attribute such as ``dark humour'' or ``courtroom'' -- is answerable by any user who has
-consumed two of the items carrying the tag, rather than one specific item. We hold the selection rule fixed
+The first lever is the question bank. An item question can only be answered by a user who has consumed that item; a concept question -- a tag-level attribute such as ``dark humour'' or ``courtroom'' -- we define
+as answerable when the user has consumed two of the items carrying the tag, rather than one specific
+item. We hold the selection rule fixed
 at the greedy static order and vary only what is in the bank.
 
 \paragraph{Enlarging the bank improves cold-start ranking.}
@@ -279,9 +280,11 @@ $+0.01430^\star$ $[+0.01124,+0.01739]$ and tail by $+0.02199^\star$, with the sa
 the scoring contract on the same cohort at the same budget. \emph{The mechanism is the answer rate, and it is not breadth.} The prefix-optimal joint
 sequence gives concepts ten of sixteen slots and both of the first two, the tree opens on a concept,
 and at sixteen questions the two single channels tie on full ($-0.00003$ $[-0.00315,+0.00310]$) while
-concepts win the tail ($+0.01436^\star$). That tie is two effects cancelling: lift over the
-answer-free reference factorises into answers collected and lift per answer, and an item answer is worth $3.98\times$ a concept answer ($0.02771$ against $0.00697$) while the concept channel collects
-$3.98\times$ as many. Held to a matched number of answers the item channel wins, $+0.02734^\star$
+concepts win the tail ($+0.01436^\star$). That tie is two effects cancelling. Lift over the answer-free reference factorises into answers
+collected and lift per answer: an item answer is worth $0.02771$ against a concept answer's
+$0.00697$, and the concept channel collects 12.36 answers against 3.11. The two ratios are
+reciprocal at $3.98$, which restates the tie rather than adding to it; what the decomposition
+identifies is which term carries each channel.
 $[+0.02430,+0.03037]$ at $1.79$ against $1.75$ answers. Aggregating hundreds of items into one question \emph{dilutes} what its answer says; the channel wins anyway because two concept questions
 leave $11$ of $10{,}000$ users with nothing to say, where two item questions leave $5{,}779$.
 
@@ -294,7 +297,7 @@ lookup.
 \section{RQ2: How the System Chooses}
 \label{sec:rq2}
 
-RQ1's null and RQ2's diagnosis together specify one experiment. Take the field's own adaptive
+The second lever is the selection rule. Take the field's own adaptive
 machinery, Golbandi's ternary interview tree~\cite{golbandi2011adaptive}, which asks a question at
 each node and routes users down a like, dislike or did-not-answer branch, and change exactly one
 thing: the scalar by which a candidate question is scored. We call the resulting selector CASPER (Cold-start Adaptive Selection for Preference Elicitation in
@@ -359,8 +362,7 @@ Exactly one of the six criteria places the adaptive interview above the static o
 nothing but the number a question is scored by flips the sign of the conditioning gain. Three readings follow. First, \emph{the separating axis is measured
 versus surrogate, not ranking versus rating}. Hu and Yu's pairwise rank loss and Golbandi's rating
 variance are indistinguishable on our metric, $+0.00020$ $[-0.00331,+0.00371]$ full and $-0.00092$
-$[-0.00448,+0.00277]$ tail, the only null in the matrix, so upgrading a rating surrogate to a ranking
-surrogate bought nothing. Second, \emph{the failure is in the approximation, not in the shape of the loss}. At the root the
+$[-0.00448,+0.00277]$ tail, the only null in the matrix, so replacing a rating surrogate with a ranking surrogate changed nothing. Second, \emph{the failure is in the approximation, not in the shape of the loss}. At the root the
 measured held-out pairwise rank loss tracks measured NDCG@10 at Spearman $+0.784$ and forgoes only
 $+0.00459$, about $29\%$ of what a random pick forgoes, whereas the Taylor-approximated
 training-loss version of the same objective correlates at $-0.149$, ranks the metric's best question
@@ -390,14 +392,12 @@ weak consumer says more about the consumer than about the selector.
 \begin{table}[tbp]
 \centering
 \caption{The same two interviews, four consumers, 10{,}000 test users, full/tail NDCG@10. Only the
-consumer changes. A fourth, a conjugate accumulator, is omitted for space and gives
-$+0.00161^\star$ at $K{=}16$. The leaf model has no $K{=}16$ row ($3^k$ patterns fragment its
-cohort); $K{=}1$ is omitted, both arms asking the same question by construction. RecVAE's low cells
-are an interface limit, not a property of the interview: it ingests a binary liked-item vector and
-cannot read concept answers at all, so the early budgets, which both interviews spend mostly on
-concepts, reach it as an empty input. RBMF is shown alongside it because it is the other item-only consumer and fails identically, so
-the pattern is the input contract rather than one model. Consumers are scored with no
-popularity floor, so a consumer given nothing is scored on what it predicts.}
+consumer changes; a fifth, a conjugate accumulator, is omitted and gives $+0.00161^\star$ at
+$K{=}16$. The leaf model has no $K{=}16$ row ($3^k$ patterns fragment its cohort); $K{=}1$ is
+omitted, both arms asking the same question by construction. RecVAE and RBMF ingest an item vector
+and cannot read concept answers, so the budgets spent on concepts reach them as an empty input --
+an interface limit shared by both, not a property of the interview. No popularity floor: a consumer
+given nothing is scored on what it predicts.}
 \label{tab:consumers}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -513,16 +513,11 @@ clairvoyant oracle & --- & .1893/.0680 & .2194/.0965 & .2544/.1281 & .2930/.1597
 \paragraph{Every published method lands below the fixed order.}
 At sixteen questions the greedy items-only sequence reaches $.2447/.1017$, against $.2303/.0924$ for
 the entropy$_0$ heuristic~\cite{rashid2008learning} and $.2161/.0833$ for GLM-UCB. The strongest items-only static order leads the best adaptive selector
-by $.0281^\star$ $[.0247,.0314]$ full and $.0178^\star$ $[.0145,.0210]$ tail, twice that selector's deficit
-against the heuristic. Widened to every adaptive arm, 138 cells in all, the combined and concepts-only orders lead and
+by $.0281^\star$ $[.0247,.0314]$ full and $.0178^\star$ $[.0145,.0210]$ tail, twice that selector's deficit against the heuristic. Tuning does not change this: at the constants
+chosen on validation GLM-UCB and Thompson gain $+.0073$ and $+.0023$ over their published values and
+still trail the combined static order by $-.0356^\star$ and $-.0432^\star$. Widened to every adaptive arm, 138 cells in all, the combined and concepts-only orders lead and
 separate in all 138 and the items-only order in 136, the exceptions being tail cells separating
 neither way.
-
-\paragraph{Tuning the bandits does not change the verdict.}
-At the constants chosen on validation, GLM-UCB reaches $.2234/.0841$ at sixteen questions and
-Thompson $.2158/.0881$, worth $+.0073$ and $+.0023$ full over their published values and still
-$-.0356^\star$ and $-.0432^\star$ below the combined static order, $-.0213$ and $-.0289$ below the
-items-only order that is the correct comparator for an item-only selector.
 
 \paragraph{The loss is not a failure to branch.}
 Thompson sampling conducts a distinct interview for every one of the 10{,}000 users from the fourth
