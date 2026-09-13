@@ -80,8 +80,11 @@ Those rules were designed when recommender quality was measured by RMSE or MAE, 
 reflect it: within-node rating variance~\cite{golbandi2011adaptive}, information gain about a latent
 variable~\cite{ma2019eddi}, posterior variance~\cite{houlsby2011bald}, an A-optimality
 trace~\cite{anava2015budget,sepliarskaia2018spq}, a bandit index over a predicted
-rating~\cite{zhao2013interactive,zhang2020conucb}. Evaluation has since moved to truncated,
-position-discounted top-$k$ ranking, and the criteria did not move with it. Of the thirteen methods
+rating~\cite{zhao2013interactive,zhang2020conucb}. Evaluation has since moved to truncated, position-discounted top-$k$ ranking, because a deployed
+recommender shows a short ranked list and what matters is whether relevant items reach its top,
+not how accurately every rating is reproduced; algorithms ranked well by error metrics can rank
+poorly on that task~\cite{cremonesi2010performance,dacrema2019progress,krichene2020sampled}. The
+criteria did not move with it. Of the thirteen methods
 we re-implement, five report a held-out ranking metric and three of those report NDCG; the remaining
 eight report rating error or cumulative regret. Holding the first group to NDCG@10 holds them to
 their own headline, and for the second it establishes what their rules transfer to, which a recent
