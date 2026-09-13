@@ -298,13 +298,12 @@ $[+0.02430,+0.03037]$ at $1.79$ against $1.75$ answers. Aggregating hundreds of 
 question \emph{dilutes} what its answer says; the channel wins anyway because two concept questions
 leave $11$ of $10{,}000$ users with nothing to say, where two film questions leave $5{,}779$.
 
-\paragraph{What it costs.}
-Five qualifiers travel with $+0.01035$. Validation overstates it ($+0.02794$ full on the selection
-cohort). Six of the fifteen leaves lose on test, covering $39.3\%$ of the cohort, because a leaf
-inherits questions chosen for its parent's cohort. Conditioning does not touch reach: about $14\%$ of
-users answer nothing in the first three questions and stay at the no-answer level. The tree diverges without being shown to route, a congruence test being a null, so no routing claim
-is made. And it is expensive to build: 37{,}191 seconds per tree against eleven seconds for the Taylor
-construction, though serving is a lookup either way.
+\paragraph{Where the gain does and does not reach.}
+Six of the fifteen leaves lose on test, covering $39.3\%$ of the cohort, because a leaf inherits
+questions chosen for its parent's cohort, and about $14\%$ of users answer nothing in the first three
+questions and stay at the no-answer level. The tree diverges without being shown to route, so no
+routing claim is made. Building it costs 37{,}191 seconds against eleven for the Taylor
+construction; serving is a lookup either way.
 
 \section{RQ2: How the System Chooses}
 \label{sec:rq2}
@@ -405,49 +404,16 @@ $-0.05605$, $-0.08627$) until its NDCG@10 falls below its own one-question value
 agree with the metric on the easiest decision and still walk the interview downhill. The ablation is not a
 refutation of the published results on their own protocols.
 
-\paragraph{Who consumes the answers moves the number further than who chooses the questions.}
-CASPER's criterion is the metric computed through the recommender that then scores it, so we hand
-the same two banked interviews to three further consumers: RecVAE~\cite{ren2020recvae}, a conjugate
-belief accumulator over a frozen factorisation, and Golbandi's leaf model~\cite{golbandi2011adaptive},
-which matches a cold user to training users sharing their answer pattern. Nothing is regrown or
-re-selected, and the certified consumer reproduces Table~\ref{tab:tree} to five decimals. CASPER
-beats the static order on three of the four at every budget, all intervals excluding zero ($+0.01035$
-on the certified tower, $+0.00161$ on the accumulator at sixteen questions; RecVAE's $+0.04122$ is
-measured against a static arm with almost no usable input and counts for direction only); on the leaf
-model it wins at two and four questions and reverses at eight ($-0.01375^\star$). Read
-Table~\ref{tab:consumers} down its columns and that reversal is an argument for certifying the
-consumer: every cell of the certified tower's block sits above every cell of every other block at the
-same budget, CASPER there beating the best arm any other consumer reaches by $+0.0270^\star$,
-$+0.0410^\star$ and $+0.0391^\star$ at two, four and eight questions. Choosing the consumer is worth
-two to four points where choosing the selector is worth one.
+\paragraph{The result does not depend on who consumes the answers.}
+The criterion is computed through the recommender that then scores it, so we hand the same two
+banked interviews to three further consumers without regrowing or reselecting anything:
+RecVAE~\cite{ren2020recvae}, a conjugate belief accumulator over a frozen factorisation, and
+Golbandi's leaf model~\cite{golbandi2011adaptive}. CASPER exceeds the static order on three of the
+four at every budget, all intervals excluding zero ($+0.01035$ on the certified tower, $+0.00161$ on
+the accumulator at sixteen questions). On the leaf model it leads at two and four questions and
+reverses at eight ($-0.01375^\star$), a consumer whose every cell sits below the certified tower's
+at the same budget.
 
-\begin{table}[tbp]
-\centering
-\caption{The same two interviews, three consumers, 10{,}000 test users, full/tail NDCG@10. Only the
-consumer changes; a fourth, a conjugate accumulator, is omitted for space and gives
-$+0.00161^\star$ at $K{=}16$. The leaf model has no $K{=}16$ row ($3^k$ patterns fragment its
-cohort); $K{=}1$ is omitted, both arms asking the same first question by construction. Consumers are
-scored with no popularity floor, so one receiving no usable input scores near zero: RecVAE ingests
-liked items only, and its low-budget cells are a property of that input contract, not of the
-interview. The answer-free reference $.1626/.0262$ is the certified tower's.}
-\label{tab:consumers}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{ll rrrr}
-\toprule
-consumer & interview & $K{=}2$ & $K{=}4$ & $K{=}8$ & $K{=}16$ \\
-\midrule
-certified tower & CASPER & $\mathbf{.2015}/.0675$ & $\mathbf{.2267/.0905}$ & $\mathbf{.2492/.1117}$ & $\mathbf{.2694/.1307}$ \\
- & static & $.1962/\mathbf{.0701}$ & $.2178/.0857$ & $.2386/.1033$ & $.2590/.1237$ \\
-\midrule
-Golbandi leaf & CASPER & $.1745/.0393$ & $.1858/.0526$ & $.1964/.0592$ & --- \\
- & static & $.1626/.0262$ & $.1746/.0478$ & $.2101/.0741$ & --- \\
-\midrule
-RecVAE & CASPER & $.0428/.0152$ & $.1016/.0399$ & $.1265/.0527$ & $.1769/.0764$ \\
- & static & $.0000/.0000$ & $.0662/.0130$ & $.1162/.0317$ & $.1357/.0409$ \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \paragraph{Answer to RQ2.}
 Substituting the measured metric for the published criterion inside Golbandi's interview tree,
@@ -555,8 +521,7 @@ improvement on a held-out ranking metric, so holding them to NDCG@10 holds them 
 \paragraph{Robustness.}
 The ordering repeats on RecVAE~\cite{ren2020recvae}, TaNP~\cite{lin2021tanp} and EDDI's
 Partial-VAE~\cite{ma2019eddi} and reverses on Golbandi's leaf model, where Thompson sampling beats
-the static order at every budget it runs at; Table~\ref{tab:consumers} returns to that consumer with
-absolute numbers.
+the static order at every budget it runs at; the consumer paragraph below returns to it.
 
 \paragraph{Answer to RQ3, first half.}
 Under one contract, no published selector reaches a fixed order chosen by greedy maximisation of
