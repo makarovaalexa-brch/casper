@@ -544,6 +544,26 @@ index~\cite{zhao2013interactive,zhang2020conucb,wang2023conlinucb,liu2025clisk,p
 Optimising a surrogate is not a defect in itself, but five of the thirteen reported a ranking metric, so holding
 them to NDCG@10 holds them to their own headline.
 
+\paragraph{The comparator the literature does not use.}
+Auditing what each method was measured \emph{against} explains why this had gone unrecorded. Across
+the thirteen and the two nearest neighbours, comparators are random orders, popularity, a
+rating-prediction model, or other methods of the same family: DRE against
+MostPop and RBMF/RMVA variants~\cite{kweon2020deep}, the conversational bandits against LinUCB and
+each other~\cite{zhang2020conucb,wang2023conlinucb,liu2025clisk}, Gharahighehi et
+al.~\cite{gharahighehi2025pairwise} against a HELF variant and their own single-item tree, Lin et
+al.~\cite{lin2023upsrec} against matrix factorisation, a max-entropy rule and two conversational
+recommenders. Methods reporting only rating error or cumulative regret never compute a ranking
+metric, so none can have been measured against an order maximising one. The two that come closest
+both maximise an \emph{estimated} quantity for the current user at selection time rather than a
+measured cohort outcome: DPE's \textsc{Greedy} solicits ``the item with highest estimated relevance
+by a recommendation algorithm''~\cite{parapar2021dpe}, and Lin et al.'s selector ranks attributes by
+expected NDCG gain computed on its own refined user representation. Two papers state the underlying
+problem directly: Sepliarskaia et al.~\cite{sepliarskaia2018spq} attribute an interview tree's loss
+to its objective rather than to its staticness, and Greedy SLIM~\cite{proissl2024greedyslim} observes
+that ``RMSE is not a good measure for the performance of top-$N$ recommender systems'' -- then
+implements Golbandi's and Sepliarskaia's methods, obtains poor results, and excludes both from its
+official experiments.
+
 \paragraph{Robustness.}
 The ordering repeats on RecVAE~\cite{ren2020recvae}, TaNP~\cite{lin2021tanp} and EDDI's
 Partial-VAE~\cite{ma2019eddi} and reverses on Golbandi's leaf model, where Thompson sampling beats
