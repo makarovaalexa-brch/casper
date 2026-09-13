@@ -263,16 +263,6 @@ questions. This is a stronger comparator than the literature uses, which is the 
 heuristics and random orders these methods are usually measured against leave the question of how
 they compare with a metric-optimised order unanswered.
 
-\paragraph{Bounding the fitting advantage.}
-The comparator receives a search on NDCG@10 over a validation cohort, which no ported arm receives.
-This is a fitting advantage, not a scoring one: every arm meets the same unseen test users under the
-same budget and answer contract. We bound it two ways. Giving each bandit the same freedom, one
-constant chosen on validation by the same metric, moves it by $+0.0058$ and $+0.0018$ against a
-deficit of $0.037$--$0.044$, so the advantage accounts for roughly a seventh of the gap. And the
-ablation of Table~\ref{tab:criterion} removes it entirely: there every criterion, ours included, is
-fitted by the same search on the same data at the same budget, and only the measured metric places
-the interview above the static order.
-
 \section{RQ1: What the System Can Ask}
 \label{sec:rq1}
 
@@ -553,8 +543,8 @@ for which we take having rated the item. A behavioural answer is one the user on
 one they would give in conversation, and that gap is not measured here. Results are on one dataset
 and one recommender, so the criterion-regret measurement in particular would need a second certified
 recommender before it is known to generalise. Our comparator has no published counterpart, since no
-prior work reports a static order built by greedily maximising cohort-mean held-out NDCG@10; the
-recipe is deterministic and its fitting advantage is bounded in Section~\ref{sec:contract}.
+prior work reports a static order built by greedily maximising cohort-mean held-out NDCG@10; the recipe is deterministic, and the search it receives is noted with the results it produces
+(Table~ef{tab:battery}).
 
 \medskip\noindent
 Put the reported metric into the split criterion and the field's own interview tree rises above a
