@@ -45,9 +45,9 @@ A cold-start recommender asks a new user a few questions before it can recommend
 govern the result: which questions the system is able to ask, and how it selects the next one. We
 study both under a single measurement contract on one strong recommender, with answers read from
 users' own recorded ratings and with a question the user cannot answer still consuming a turn.
-On the first, enlarging the question bank from items to items plus \emph{concept questions} --
-tag-level generalisations a user can answer without having consumed any particular item -- improves full
-NDCG@10 by $+0.01430$ at sixteen questions on 10{,}000 held-out users with no conditioning of any
+On the first, enlarging the question bank from items to items plus \emph{concept questions} -- tag-level
+attributes answerable by any user who has consumed two of the items carrying the tag, rather than one
+specific item -- improves full NDCG@10 by $+0.01430$ at sixteen questions on 10{,}000 held-out users with no conditioning of any
 kind, because sixteen concept questions obtain 12.36 answers where sixteen item questions obtain 3.11. On the second, CASPER (Cold-start Adaptive Selection for Preference Elicitation in
 Recommendation) scores each candidate question by the held-out NDCG@10 that asking it actually
 produces, measured by folding real answers through the recommender. Holding the tree, the search and
@@ -102,7 +102,9 @@ do published selectors compare against a question order that maximises it?
 \noindent Our contributions are fourfold, and the first two are independent design choices rather
 than competing alternatives: one concerns what the system can ask, the other how it chooses.
 \begin{itemize}
-\item \textbf{A question bank that generalises.} Concept questions -- tag-level attributes answerable without having consumed any particular item -- added to an item bank improve full NDCG@10 by $+0.01430$
+\item \textbf{A question bank that generalises.} Concept questions -- tag-level attributes answerable by
+any user who has consumed two of the items carrying the tag, rather than one specific item -- added
+to an item bank improve full NDCG@10 by $+0.01430$
 and tail by $+0.02199$ with no conditioning of any kind. We identify the mechanism as the answer
 rate rather than the breadth of the question: an item answer carries $3.98\times$ the value of a
 concept answer, and the concept channel obtains $3.98\times$ as many.
@@ -216,15 +218,14 @@ $0.3540/0.2497$ rebuilt here, indistinguishable on the tail (paired interval spa
 $1.2\%$ short on the full profile, so elicitation is not measured against a weak
 recommender~\cite{dacrema2019progress,steck2019ease}. Its second channel folds concept questions: the
 1{,}031 MovieLens Tag Genome tags (``dark humour'', ``courtroom''), each a whitened centroid of its
-member items, answered with a signed behavioural affinity read from the user's history. A concept generalises over items, so asking one presupposes no particular item, which is what makes that channel
-answerable where item questions are not.
+member items, answered with a signed behavioural affinity read from the user's history. A concept generalises over items, so asking one presupposes no particular item, which is what makes
+that channel answerable where item questions are not.
 
 \paragraph{Answers and interface.}
 A question is answered from the user's own held-out ratings: an item question by their half-star level
 if they rated it, a concept question by a signed implicit-exposure statistic over their profile,
 $\log_2\!\big((n_c+\tfrac12)/(e_c+\tfrac12)\big)$, where $n_c$ is the number of the tag's items the
-user consumed and $e_c$ the number expected from their volume and the tag's popularity; a user with
-$e_c<1.5$ has had no exposure and refuses rather than dislikes. An asked question the user cannot answer forfeits its turn, folding as the encoder's
+user consumed and $e_c$ the number expected from their volume and the tag's popularity; a user with $e_c<1.5$ has had no exposure and refuses rather than dislikes. An asked question the user cannot answer forfeits its turn, folding as the encoder's
 unseen-exposure or refusal token, so a question the user cannot answer still consumes a turn. Answers
 are read from a per-user lookup built with that user's held-out targets removed and asserted at run
 time to contain none of them, and an answered item is outside the candidate pool, so no answer can
@@ -273,7 +274,9 @@ the interview above the static order.
 \section{RQ1: What the System Can Ask}
 \label{sec:rq1}
 
-The first lever is the question bank. An item question can only be answered by a user who has consumed that item; a concept question -- a tag-level attribute such as ``dark humour'' or ``courtroom'' -- generalises over items, so answering it presupposes no particular item. We hold the selection rule fixed
+The first lever is the question bank. An item question can only be answered by a user who has consumed that item; a concept question -- a
+tag-level attribute such as ``dark humour'' or ``courtroom'' -- is answerable by any user who has
+consumed two of the items carrying the tag, rather than one specific item. We hold the selection rule fixed
 at the greedy static order and vary only what is in the bank.
 
 \paragraph{Enlarging the bank improves cold-start ranking.}
