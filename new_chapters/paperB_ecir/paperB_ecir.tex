@@ -47,8 +47,8 @@ study both under a single measurement contract on one strong recommender, with a
 users' own recorded ratings and with a question the user cannot answer still consuming a turn.
 On the first, enlarging the question bank from items to items plus \emph{concept questions} --
 tag-level attributes that generalise over their member items, so a user can answer one without
-having consumed any specific item -- improves full NDCG@10 by $+0.01430$ at sixteen questions on
-10{,}000 held-out users with no conditioning of any kind, because sixteen concept questions obtain
+having consumed any specific item -- improves full NDCG@10 by $+0.01430$ at sixteen questions on 10{,}000 held-out users from a single fixed question order asked of everybody, because sixteen
+concept questions obtain
 12.36 answers where sixteen item questions obtain 3.11. On the second, only a rule that selects on
 the metric the system is judged on places an adaptive interview above a strong fixed question order:
 with the tree, the search and the data held fixed, five published split criteria leave the interview
@@ -106,9 +106,8 @@ do published selectors compare against a question order that maximises it?
 than competing alternatives: one concerns what the system can ask, the other how it chooses.
 \begin{itemize}
 \item \textbf{A question bank that generalises.} Concept questions -- tag-level attributes answerable by
-any user who has consumed two of the items carrying the tag, rather than one specific item -- added
-to an item bank improve full NDCG@10 by $+0.01430$
-and tail by $+0.02199$ with no conditioning of any kind. We identify the mechanism as the answer
+any user who has consumed two of the items carrying the tag, rather than one specific item -- added to an item bank improve full NDCG@10 by $+0.01430$ and tail by $+0.02199$ from a single fixed
+question order asked of everybody. We identify the mechanism as the answer
 rate rather than the breadth of the question: an item answer carries $3.98\times$ the value of a
 concept answer, and the concept channel obtains $3.98\times$ as many.
 \item \textbf{Selection on the measured metric.} CASPER (Cold-start Adaptive Selection for
@@ -275,7 +274,7 @@ at the greedy static order and vary only what is in the bank.
 
 \paragraph{Enlarging the bank improves cold-start ranking.}
 Enlarging the bank from items to items plus concept questions improves full NDCG@10 by
-$+0.01430^\star$ $[+0.01124,+0.01739]$ and tail by $+0.02199^\star$, with no conditioning of any kind
+$+0.01430^\star$ $[+0.01124,+0.01739]$ and tail by $+0.02199^\star$, with the same sixteen questions asked of every user in the same order
 -- $16.6\%$ of the static order's own improvement over asking nothing. Both orders are selected under
 the scoring contract on the same cohort at the same budget. \emph{The mechanism is the answer rate, and it is not breadth.} The prefix-optimal joint
 sequence gives concepts ten of sixteen slots and both of the first two, the tree opens on a concept,
