@@ -176,7 +176,7 @@ ported policy is gated on reproducing the rule as written and on beating random 
 our metric, not on matching a published number. Gharahighehi et al.~\cite{gharahighehi2025pairwise}
 add attribute nodes to a Golbandi-style tree and report that attributes help, on RMSE over 1{,}701
 users and 4{,}793 artists; their split criterion is prediction error, which is the criterion our
-ablation runs in Table~\ref{tab:splitcrit}, and their second contribution, a node asking about a
+ablation runs in Table~\ref{tab:criterion}, and their second contribution, a node asking about a
 \emph{pair} of items, needs a two-item question interface our contract does not provide. Our claim
 is therefore not that attribute questions help, which is known, but why: we attribute the gain to the
 answer rate rather than to the breadth of the question, and measure both terms separately. The
@@ -205,8 +205,8 @@ scored on what it predicts rather than overwritten by a popularity row. Separati
 percentile bootstrap over the per-user difference, 10{,}000 resamples clustered over users. No
 family-wise correction is applied: the battery claims rest on directional consistency across whole
 tables, and the three cells where a single interval carries a claim were specified before the test cohort
-was constructed: the tree's full and tail gains at $K{=}16$ (Table~\ref{tab:tree}) and the measured
-criterion's gain in the ablation (Table~\ref{tab:splitcrit}). Every other interval is descriptive.
+was constructed: CASPER's full and tail gains at $K{=}16$ and the measured
+criterion's gain in the ablation (Table~\ref{tab:criterion}). Every other interval is descriptive.
 
 \paragraph{The instrument.}
 The frozen recommender every arm is scored with is a two-tower set encoder that ingests an
@@ -269,7 +269,7 @@ This is a fitting advantage, not a scoring one: every arm meets the same unseen 
 same budget and answer contract. We bound it two ways. Giving each bandit the same freedom, one
 constant chosen on validation by the same metric, moves it by $+0.0058$ and $+0.0018$ against a
 deficit of $0.037$--$0.044$, so the advantage accounts for roughly a seventh of the gap. And the
-ablation of Table~\ref{tab:splitcrit} removes it entirely: there every criterion, ours included, is
+ablation of Table~\ref{tab:criterion} removes it entirely: there every criterion, ours included, is
 fitted by the same search on the same data at the same budget, and only the measured metric places
 the interview above the static order.
 
@@ -318,44 +318,24 @@ by folding that child's answers through the frozen recommender and ranking the c
 approximated and no ground truth is read at selection time, since the criterion is a cohort-level
 quantity on the validation cohort. The tree is grown there and frozen: depth 5, 15 leaves, 22 nodes,
 a minimum leaf size of 200 as the only stopping rule, and sixteen questions per user, all
-selected by the criterion under test (Table~\ref{tab:tree}). Its root splitter is a concept answered
+selected by the criterion under test. Its root splitter is a concept answered
 by $74.2\%$ of the cohort, where the best item split would send 7{,}045 of 10{,}000 users into the
 did-not-answer branch. The comparator is a static order built by the same
 greedy machinery, on the same objective, pool, candidate mask and cohort, resumed from the tree
 root's own search heap, so its first pick is necessarily the tree's root question and the contract
 gate is exact: at $K{=}1$ the per-user difference is $0.0$ for all 20{,}000 users.
 
-\begin{table}[tbp]
-\centering
-\caption{The measured-metric tree against the static order built by the same search on the same
-objective, 10{,}000 held-out test users. $K{=}1$ is exactly zero by construction, the contract gate
-rather than a result. Absolute at $K{=}16$: tree $0.26936/0.13074$, static $0.25900/0.12370$, no
-questions $0.15855/0.02819$. Beyond $K{=}5$ the tree's depth is exhausted and the remaining
-questions are chosen inside the reached leaf by the same measured-NDCG search, so the $K{=}16$
-gain is five conditioned questions plus a leaf-conditioned tail. Bold is best per column.}
-\label{tab:tree}
-\footnotesize
-\begin{tabular}{lcc}
-\toprule
-$K$ & full gain [95\% CI] & tail gain [95\% CI] \\
-\midrule
-1 & $0.00000$ (exact) & $0.00000$ (exact) \\
-2 & $+0.00528^\star$ $[+0.00324,+0.00725]$ & $-0.00262^\star$ $[-0.00481,-0.00051]$ \\
-4 & $+0.00891^\star$ $[+0.00632,+0.01147]$ & $+0.00482^\star$ $[+0.00214,+0.00756]$ \\
-8 & $\mathbf{+0.01062}^\star$ $[+0.00775,+0.01354]$ & $\mathbf{+0.00835}^\star$ $[+0.00543,+0.01130]$ \\
-16 & $+0.01035^\star$ $[+0.00739,+0.01323]$ & $+0.00705^\star$ $[+0.00394,+0.01012]$ \\
-\bottomrule
-\end{tabular}
-\end{table}
 
-\paragraph{The result, with its qualifier attached.}
-Conditioning on cold, closed-vocabulary questions exceeds a strong static order on held-out users from
-four questions onward, on both axes (Table~\ref{tab:tree}); seven of the eight $K\ge2$ intervals
-exclude zero in the tree's favour and the eighth, tail at two questions, excludes zero against it.
+\paragraph{The result.}
+CASPER exceeds the static order on held-out users from four questions onward on both axes, reaching
+$+0.01035^\star$ $[+0.00739,+0.01323]$ full and $+0.00705^\star$ $[+0.00394,+0.01012]$ tail at
+sixteen questions. Seven of the eight $K\ge2$ intervals exclude zero in CASPER's favour; the eighth,
+tail at two questions, excludes zero against it. At $K{=}1$ the per-user difference is $0.0$ for all
+20{,}000 users, the contract gate rather than a result.
 
 \paragraph{One variable changed.}
 The mechanism claim is about one variable, so we vary that one
-(Table~\ref{tab:splitcrit}): same tree code, branch rule, minimum leaf size, answer contract, recommender, candidate mask, pool, cohorts and budget, with the split criterion replaced by each
+(Table~\ref{tab:criterion}): same tree code, branch rule, minimum leaf size, answer contract, recommender, candidate mask, pool, cohorts and budget, with the split criterion replaced by each
 published alternative in turn, each scored through its own second-order split gain with nothing
 sampled (the pairwise loss sums over all $137{,}591{,}707$ fold-in pairs). Two shuffle controls
 complete the set, a uniform draw over the pool and one restricted to candidates whose split clears
@@ -363,22 +343,27 @@ the minimum leaf size, the latter the fair control since it destroys only the ch
 
 \begin{table}[tbp]
 \centering
-\caption{One variable changed: gain against the same static order, 10{,}000 test users, $K{=}16$. All
-56 non-nested intervals in the six-arm matrix exclude zero except the pairwise-versus-variance
-contrast reported in the text. Bold is best per column.}
-\label{tab:splitcrit}
+\caption{Each published split criterion, as a predictor of the metric (left) and as the criterion a
+tree is grown by (right). Left: agreement with exact measured NDCG@10 gains over the $\approx$1{,}000
+candidates at each of the 22 nodes our tree visits; regret is the NDCG@10 forgone by following that
+criterion instead of the metric. Right: gain against the same static order, 10{,}000 test users,
+$K{=}16$, with everything but the criterion held fixed. $^\star$ marks an interval excluding zero.}
+\label{tab:criterion}
 \footnotesize
-\begin{tabular}{lrrrr}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{l rrr rr}
 \toprule
-split criterion & full@10 & full gain & tail@10 & tail gain \\
+ & \multicolumn{3}{c}{\emph{as a predictor of the metric}} & \multicolumn{2}{c}{\emph{as a tree's criterion}} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-6}
+split criterion & mean $\rho$ & argmax hit & regret & full@10 & gain \\
 \midrule
-measured NDCG@10 (ours) & $\mathbf{0.26936}$ & $\mathbf{+0.01035}^\star$ & $\mathbf{0.13074}$ & $\mathbf{+0.00705}^\star$ \\
-pairwise rank loss~\cite{hu2013interview} & $0.22859$ & $-0.03041^\star$ & $0.10031$ & $-0.02338^\star$ \\
-rating variance~\cite{golbandi2011adaptive} & $0.22840$ & $-0.03061^\star$ & $0.10124$ & $-0.02246^\star$ \\
-logistic loss (as run)~\cite{hu2013interview} & $0.17274$ & $-0.08627^\star$ & $0.06817$ & $-0.05552^\star$ \\
+measured NDCG@10 (ours) & --- & --- & --- & $\mathbf{0.26936}$ & $\mathbf{+0.01035}^\star$ \\
+rating variance~\cite{golbandi2011adaptive} & $+0.010$ & 1/22 & $+0.01664$ & $0.22840$ & $-0.03061^\star$ \\
+pairwise rank loss~\cite{hu2013interview} & $-0.060$ & 0/22 & $+0.01738$ & $0.22859$ & $-0.03041^\star$ \\
+logistic loss~\cite{hu2013interview} & $-0.104$ & 1/22 & $+0.01282$ & $0.17274$ & $-0.08627^\star$ \\
 \midrule
-shuffle, min-leaf-respecting & --- & $-0.04817^\star$ & --- & $-0.03412^\star$ \\
-shuffle, unrestricted & --- & $-0.03934^\star$ & --- & $-0.02126^\star$ \\
+uniform random pick & --- & --- & $+0.01955$ & --- & $-0.03934^\star$ \\
+shuffle, min-leaf-respecting & --- & --- & --- & --- & $-0.04817^\star$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -413,6 +398,40 @@ reverses at eight ($-0.01375^\star$), a consumer whose every cell sits below the
 at the same budget.
 
 
+\paragraph{Criterion regret at real states.}
+At every node it visits, the tree of Section~\ref{sec:rq2} persists the exact measured cohort-mean
+NDCG@10 gain of every candidate over that node's own users: 22 nodes by roughly 1{,}000 candidates of
+ground truth for the quantity each criterion approximates. We score three against it
+(Table~\ref{tab:criterion}): Golbandi's within-node rating variance~\cite{golbandi2011adaptive}, Hu
+and Yu's pairwise rank loss~\cite{hu2013interview}, and the logistic loss their experiments ran.
+The states are the ones our criterion's tree reaches, so the table measures how well a surrogate
+stands in for the metric at a fixed set of real interview states. How a tree grown by each criterion
+would perform is Table~
+Table~
+ef{tab:criterion} grows each criterion its own tree.
+
+
+Following any of these criteria recovers only $11$--$34\%$ of the NDCG@10 that a uniformly random
+pick leaves unrealised. The rank correlations are approximately zero and two of three are negative,
+so these surrogates are not merely weak, two of them point the wrong way: at the states this tree visits they are close to uninformative about
+the quantity the field reports, and the pairwise loss selects the measured argmax at no node. At the
+root the logistic criterion's argmax is the metric's argmax, while variance ranks that question 250th
+of 1{,}000 and the pairwise loss 75th; one level down, no criterion does better than the others. They
+agree with the metric where the cohort is largest and stop agreeing where an adaptive method must
+earn its keep.
+
+\paragraph{How much is there to adapt to.}
+If adaptive selection is to confer a benefit, users must occupy states in which different questions
+are optimal. We score each question by $U(q\mid\zz)=\sum_a P(a\mid\zz)\,V(\zz\oplus(q,a))$, with $V$
+the expected NDCG@10 of the slate the recommender would show, and report the perplexity of the argmax
+distribution: an effective number of distinct optimal questions. Over the concept bank the 10{,}000 cold users share a single optimal question (effective $1.00$); after one standard opener five are optimal (effective $2.88$), and after two, nine (effective $5.04$). Dispersion is not payoff: a policy can produce ten thousand distinct interviews and still lose, as Section~
+ef{sec:rq1} shows for Thompson sampling.
+
+\paragraph{Answer to RQ3, second half.}
+The published criteria are close to uninformative about the reported metric at the states an
+interview visits, and after two questions there are roughly five materially different questions to
+choose between.
+
 \paragraph{Answer to RQ2.}
 Substituting the measured metric for the published criterion inside Golbandi's interview tree,
 everything else held fixed, places the interview above the static order from four questions onward on
@@ -432,14 +451,15 @@ comparator for those selectors is the greedy items-only sequence; the combined s
 
 \begin{table}[tbp]
 \centering
-\caption{The battery, one contract: the frozen certified recommender, protocol candidate pool,
-behavioural answers, all 10{,}000 test users, no sampling, full/tail NDCG@10. Twenty-three arms were measured; the separation counts in the text are over all twenty-three. Answer-free popularity reference $.1626/.0262$; ans@16 is the mean number of the
-sixteen questions a user could answer. Bold is best per column, excluding the clairvoyant oracle, a
-ceiling that reads the user's own ratings at selection time. Separation throughout the paper is a
-paired percentile bootstrap, 10{,}000 resamples clustered over users; $^\star$ marks an interval
-excluding zero. $^\S$ = value-free rule, responding only to which questions were answerable;
-$^\dagger$ = a reduced latent-only acquisition, not the published EDDI criterion. Golbandi's tree has
-no $k{=}16$ row: $3^k$ answer patterns fragment its training cohort beyond depth eight.}
+\caption{The battery: one contract, 10{,}000 test users, full catalogue, full/tail NDCG@10.
+Twenty-three arms were measured. ans@16 is the mean number of the sixteen questions a user could
+answer; the answer-free popularity reference is $.1626/.0262$. Bold is best per column, excluding
+the oracle. $^\star$ an interval excluding zero; $^\S$ value-free, responding only to which
+questions were answerable; $^\dagger$ a reduced latent-only acquisition, not the published EDDI
+criterion. Golbandi's tree has no $k{=}16$ row: $3^k$ answer patterns fragment its cohort beyond
+depth eight. CASPER and the greedy orders receive a metric search no ported arm receives
+(Section~\ref{sec:contract}); Table~\ref{tab:criterion} is the comparison where every criterion
+receives it.}
 \label{tab:battery}
 \footnotesize
 \setlength{\tabcolsep}{2.5pt}
@@ -448,10 +468,11 @@ no $k{=}16$ row: $3^k$ answer patterns fragment its training cohort beyond depth
 \toprule
 selector & type & $k{=}1$ & $k{=}2$ & $k{=}4$ & $k{=}8$ & $k{=}16$ & ans@16 \\
 \midrule
-\multicolumn{8}{l}{\emph{optimised static (this paper's comparator)}}\\
-greedy combined (item$+$concept) & static & \textbf{.1808/.0537} & \textbf{.1962/.0701} & \textbf{.2178}/.0857 & \textbf{.2386}/.1033 & \textbf{.2590/.1237} & 1.5i/9.2c \\
+\multicolumn{8}{l}{\emph{this paper}}\\
+CASPER (measured-metric tree) & adaptive & \textbf{.1808/.0537} & \textbf{.2015}/.0675 & \textbf{.2267/.0905} & \textbf{.2492/.1117} & \textbf{.2694/.1307} & --- \\
+greedy combined (item$+$concept) & static & \textbf{.1808/.0537} & .1962/\textbf{.0701} & .2178/.0857 & .2386/.1033 & .2590/.1237 & 1.5i/9.2c \\
 greedy items-only & static & .1760/.0434 & .1884/.0563 & .2038/.0677 & .2235/.0860 & .2447/.1017 & 3.11 \\
-greedy concepts-only & static & \textbf{.1808/.0537} & \textbf{.1962/.0701} & .2141/\textbf{.0858} & .2347/\textbf{.1074} & .2447/\textbf{.1161} & 12.36 \\
+greedy concepts-only & static & \textbf{.1808/.0537} & .1962/\textbf{.0701} & .2141/.0858 & .2347/.1074 & .2447/.1161 & 12.36 \\
 \midrule
 \multicolumn{8}{l}{\emph{literature-anchored static heuristics}}\\
 entropy$_0$~\cite{rashid2008learning} & static & .1635/.0433 & .1706/.0528 & .1831/.0636 & .2053/.0792 & .2303/.0924 & 5.52 \\
@@ -521,66 +542,10 @@ The ordering repeats on RecVAE~\cite{ren2020recvae}, TaNP~\cite{lin2021tanp} and
 Partial-VAE~\cite{ma2019eddi} and reverses on Golbandi's leaf model, where Thompson sampling beats
 the static order at every budget it runs at; the consumer paragraph below returns to it.
 
-\paragraph{Answer to RQ3, first half.}
+\paragraph{Answer to RQ3.}
 Under one contract, no published selector reaches a fixed order chosen by greedy maximisation of
 NDCG@10 at any budget, and the shortfall is not a failure to branch.
 
-
-\paragraph{Criterion regret at real states.}
-At every node it visits, the tree of Section~\ref{sec:rq2} persists the exact measured cohort-mean
-NDCG@10 gain of every candidate over that node's own users: 22 nodes by roughly 1{,}000 candidates of
-ground truth for the quantity each criterion approximates. We score three against it
-(Table~\ref{tab:criterion}): Golbandi's within-node rating variance~\cite{golbandi2011adaptive}, Hu
-and Yu's pairwise rank loss~\cite{hu2013interview}, and the logistic loss their experiments ran.
-The states are the ones our criterion's tree reaches, so the table measures how well a surrogate
-stands in for the metric at a fixed set of real interview states. How a tree grown by each criterion
-would perform is Table~
-ef{tab:splitcrit}, which grows each criterion its own tree.
-
-\begin{table}[tbp]
-\centering
-\caption{Published split criteria against exact measured NDCG@10 gains at all 22 nodes of the tree
-grown by the measured criterion; a tree grown by each criterion in turn is Table~
-ef{tab:splitcrit}. Argmax hit counts nodes where
-the criterion's top choice is the metric's; top-10 recall is the mean fraction of the metric's ten
-best questions that the criterion also ranks in its ten best.
-Regret is the user-weighted NDCG@10 forgone by following that criterion instead of the metric;
-the last row is the control a criterion must beat. Bold is best of the three criteria.}
-\label{tab:criterion}
-\footnotesize
-\begin{tabular}{lrrrrr}
-\toprule
-criterion & mean $\rho$ & nodes $\rho{>}0$ & argmax hit & top-10 recall & regret \\
-\midrule
-variance~\cite{golbandi2011adaptive} & $\mathbf{+0.010}$ & \textbf{13/22} & \textbf{1/22} & \textbf{0.03} & $+0.01664$ \\
-pairwise rank loss~\cite{hu2013interview} & $-0.060$ & 10/22 & 0/22 & 0.01 & $+0.01738$ \\
-logistic loss~\cite{hu2013interview} & $-0.104$ & 9/22 & \textbf{1/22} & \textbf{0.03} & $\mathbf{+0.01282}$ \\
-\midrule
-\emph{control: uniform random pick} & --- & --- & --- & 0.10 & $+0.01955$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Following any of these criteria recovers only $11$--$34\%$ of the NDCG@10 that a uniformly random
-pick leaves unrealised. The rank correlations are approximately zero and two of three are negative,
-so these surrogates are not merely weak, two of them point the wrong way: at the states this tree visits they are close to uninformative about
-the quantity the field reports, and the pairwise loss selects the measured argmax at no node. At the
-root the logistic criterion's argmax is the metric's argmax, while variance ranks that question 250th
-of 1{,}000 and the pairwise loss 75th; one level down, no criterion does better than the others. They
-agree with the metric where the cohort is largest and stop agreeing where an adaptive method must
-earn its keep.
-
-\paragraph{How much is there to adapt to.}
-If adaptive selection is to confer a benefit, users must occupy states in which different questions
-are optimal. We score each question by $U(q\mid\zz)=\sum_a P(a\mid\zz)\,V(\zz\oplus(q,a))$, with $V$
-the expected NDCG@10 of the slate the recommender would show, and report the perplexity of the argmax
-distribution: an effective number of distinct optimal questions. Over the concept bank the 10{,}000 cold users share a single optimal question (effective $1.00$); after one standard opener five are optimal (effective $2.88$), and after two, nine (effective $5.04$). Dispersion is not payoff: a policy can produce ten thousand distinct interviews and still lose, as Section~
-ef{sec:rq1} shows for Thompson sampling.
-
-\paragraph{Answer to RQ3, second half.}
-The published criteria are close to uninformative about the reported metric at the states an
-interview visits, and after two questions there are roughly five materially different questions to
-choose between.
 
 \section{Limitations and Conclusion}
 \label{sec:limits}
