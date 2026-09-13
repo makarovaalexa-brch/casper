@@ -420,9 +420,7 @@ ground truth for the quantity each criterion approximates. We score three agains
 and Yu's pairwise rank loss~\cite{hu2013interview}, and the logistic loss their experiments ran.
 The states are the ones our criterion's tree reaches, so the table measures how well a surrogate
 stands in for the metric at a fixed set of real interview states. How a tree grown by each criterion
-would perform is Table~
-Table~
-ef{tab:criterion} grows each criterion its own tree.
+would perform is Table~\ref{tab:criterion}, which grows each criterion its own tree.
 
 
 Following any of these criteria recovers only $11$--$34\%$ of the NDCG@10 that a uniformly random
@@ -438,8 +436,7 @@ earn its keep.
 If adaptive selection is to confer a benefit, users must occupy states in which different questions
 are optimal. We score each question by $U(q\mid\zz)=\sum_a P(a\mid\zz)\,V(\zz\oplus(q,a))$, with $V$
 the expected NDCG@10 of the slate the recommender would show, and report the perplexity of the argmax
-distribution: an effective number of distinct optimal questions. Over the concept bank the 10{,}000 cold users share a single optimal question (effective $1.00$); after one standard opener five are optimal (effective $2.88$), and after two, nine (effective $5.04$). Dispersion is not payoff: a policy can produce ten thousand distinct interviews and still lose, as Section~
-ef{sec:rq1} shows for Thompson sampling.
+distribution: an effective number of distinct optimal questions. Over the concept bank the 10{,}000 cold users share a single optimal question (effective $1.00$); after one standard opener five are optimal (effective $2.88$), and after two, nine (effective $5.04$). Dispersion is not payoff: a policy can produce ten thousand distinct interviews and still lose, as Section~\ref{sec:rq3} shows for Thompson sampling.
 
 \paragraph{Answer to RQ3, second half.}
 The published criteria are close to uninformative about the reported metric at the states an
@@ -570,8 +567,7 @@ one they would give in conversation, and that gap is not measured here. Results 
 and one recommender, so the criterion-regret measurement in particular would need a second certified
 recommender before it is known to generalise. Our comparator has no published counterpart, since no
 prior work reports a static order built by greedily maximising cohort-mean held-out NDCG@10; the recipe is deterministic, and the search it receives is noted with the results it produces
-(Table~
-ef{tab:battery}).
+(Table~\ref{tab:battery}).
 
 \medskip\noindent
 Put the reported metric into the split criterion and the field's own interview tree rises above a
