@@ -296,9 +296,8 @@ lookup.
 RQ1's null and RQ2's diagnosis together specify one experiment. Take the field's own adaptive
 machinery, Golbandi's ternary interview tree~\cite{golbandi2011adaptive}, which asks a question at
 each node and routes users down a like, dislike or did-not-answer branch, and change exactly one
-thing: the scalar by which a candidate question is scored. We call the resulting selector CASPER,
-Cold-start Adaptive Selection for Preference Elicitation in Recommendation, a name marking what is
-kept, adaptive selection, and what is changed, the quantity selected for. Each of the 1{,}000 candidates, 500
+thing: the scalar by which a candidate question is scored. We call the resulting selector CASPER (Cold-start Adaptive Selection for Preference Elicitation in
+Recommendation). Each of the 1{,}000 candidates, 500
 popularity-ranked items and 500 answerability-ranked concepts in one argmax, is scored by the
 node-size-weighted mean of its three children's cohort-mean measured held-out full NDCG@10, obtained
 by folding that child's answers through the frozen recommender and ranking the catalogue. Nothing is
