@@ -372,15 +372,44 @@ $-0.05605$, $-0.08627$) until its NDCG@10 falls below its own one-question value
 agree with the metric on the easiest decision and still walk the interview downhill. The ablation is not a
 refutation of the published results on their own protocols.
 
-\paragraph{The result does not depend on who consumes the answers.}
+\paragraph{Who consumes the answers matters more than who selects them.}
 The criterion is computed through the recommender that then scores it, so we hand the same two
 banked interviews to three further consumers without regrowing or reselecting anything:
 RecVAE~\cite{ren2020recvae}, a conjugate belief accumulator over a frozen factorisation, and
-Golbandi's leaf model~\cite{golbandi2011adaptive}. CASPER exceeds the static order on three of the
-four at every budget, all intervals excluding zero ($+0.01035$ on the certified tower, $+0.00161$ on
-the accumulator at sixteen questions). On the leaf model it leads at two and four questions and
-reverses at eight ($-0.01375^\star$), a consumer whose every cell sits below the certified tower's
-at the same budget.
+Golbandi's leaf model~\cite{golbandi2011adaptive}. CASPER leads the static order on three of the
+four, all intervals excluding zero, and reverses on the leaf model at eight questions
+($-0.01375^\star$). The larger effect is on the level rather than the ordering: every cell of the
+certified tower's block exceeds every cell of every other block at the same budget, and CASPER on
+the leaf model reaches $.1964$ at eight questions where it reaches $.2492$ on the certified tower.
+Choosing the consumer is worth two to four points where choosing the selector is worth one, which is
+the argument for certifying the consumer before an elicitation result is read off it.
+
+\begin{table}[tbp]
+\centering
+\caption{The same two interviews, three consumers, 10{,}000 test users, full/tail NDCG@10. Only the
+consumer changes. A fourth, a conjugate accumulator, is omitted for space and gives
+$+0.00161^\star$ at $K{=}16$. The leaf model has no $K{=}16$ row ($3^k$ patterns fragment its
+cohort); $K{=}1$ is omitted, both arms asking the same question by construction. Consumers are
+scored with no popularity floor, so RecVAE, which ingests liked items only, scores near zero at low
+budgets as a property of its input contract rather than of the interview.}
+\label{tab:consumers}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{ll rrrr}
+\toprule
+consumer & interview & $K{=}2$ & $K{=}4$ & $K{=}8$ & $K{=}16$ \\
+\midrule
+certified tower & CASPER & $\mathbf{.2015}/.0675$ & $\mathbf{.2267/.0905}$ & $\mathbf{.2492/.1117}$ & $\mathbf{.2694/.1307}$ \\
+ & static & $.1962/\mathbf{.0701}$ & $.2178/.0857$ & $.2386/.1033$ & $.2590/.1237$ \\
+\midrule
+Golbandi leaf & CASPER & $.1745/.0393$ & $.1858/.0526$ & $.1964/.0592$ & --- \\
+ & static & $.1626/.0262$ & $.1746/.0478$ & $.2101/.0741$ & --- \\
+\midrule
+RecVAE & CASPER & $.0428/.0152$ & $.1016/.0399$ & $.1265/.0527$ & $.1769/.0764$ \\
+ & static & $.0000/.0000$ & $.0662/.0130$ & $.1162/.0317$ & $.1357/.0409$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 
 \paragraph{Criterion regret at real states.}
