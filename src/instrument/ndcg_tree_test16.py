@@ -340,6 +340,29 @@ def main():
         rec["rows_test"] = leaf_rows(Et, nodes, rec["nid"], rows_test)
         rec["n_test"] = len(rec["rows_test"])
         assigned += rec["n_test"]
+    # UNSEEN ANSWER PATTERNS. A test user can reach a branch the tree never created, because no
+    # validation user took it. Such a user gets the STATIC order: the tree has no leaf, hence no
+    # conditioned question, for them (author ruling 2026-09-14). Routing them to an ancestor is not
+    # available -- internal nodes only materialise a tail when a child inherits one.
+    routed = set()
+    for rec in leaves:
+        routed |= set(rec["rows_test"])
+    unrouted = [r for r in rows_test if r not in routed]
+    if unrouted:
+        frac = len(unrouted) / len(rows_test)
+        log(f"[test/unseen] {len(unrouted)} of {len(rows_test)} users ({frac:.2%}) follow an answer "
+            f"pattern absent from the validation cohort: no leaf exists, so they receive the static "
+            f"comparator order (unconditioned).")
+        assert frac < 0.01, (f"unconditioned fallback covers {frac:.2%} of the test cohort; above 1% "
+                             f"the tree no longer routes the population it is measured on")
+        leaves.append({"nid": "UNSEEN", "depth": 0, "n_val": 0, "rows_val": [],
+                       "path": [], "own_sequence": [[int(a), int(b)] for a, b in cmp_seq],
+                       "new_question": [int(cmp_seq[-1][0]), int(cmp_seq[-1][1])],
+                       "new_question_gain": 0.0, "prefix_unchanged": True, "n_evals_new": 0,
+                       "minutes_extend": 0.0, "genre_face_validity": [],
+                       "val_gain_at15_vs_policyA": 0.0,
+                       "rows_test": unrouted, "n_test": len(unrouted), "unseen_fallback": True})
+        assigned += len(unrouted)
     assert assigned == len(rows_test), \
         f"routing lost users: {assigned} assigned vs {len(rows_test)} test users"
     seen = set()
