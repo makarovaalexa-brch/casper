@@ -389,7 +389,9 @@ def main():
     flush()
 
     # ---- size vs gain, on TEST ------------------------------------------------------------------
-    ok = [r for r in leaves if r["n_test"] > 0]
+    # The unconditioned-fallback leaf has no validation cohort, so it is excluded from the
+    # leaf-size-vs-gain diagnostic, which is about leaves the tree actually fitted.
+    ok = [r for r in leaves if r["n_test"] > 0 and not r.get("unseen_fallback")]
     nn = np.array([r["n_test"] for r in ok], float)
     gt = np.array([r["test_gain_at16"] for r in ok])
     gv = np.array([r["val_gain_at16"] for r in ok])
