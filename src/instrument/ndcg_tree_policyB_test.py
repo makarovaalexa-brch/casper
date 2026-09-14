@@ -58,7 +58,11 @@ from ndcg_tree import split_rows, leak_assert, BRANCHES
 # CASPER_DATASET). Was hardcoded here, so a Goodreads run would have written on top of the
 # certified ML-25M tree/greedy artifacts -- HARD RULE 11e.
 from run_battery_phaseA import OUTDIR                  # noqa: E402
-TREE_JSON = os.path.join(OUTDIR, "ndcgtree.json")
+# The tree artifacts carry the label they were grown under. ml-25m grew L=15 as "ndcgtree" and
+# extended to 16; a tree grown directly at L=16 (--label ndcgtree16) writes those names instead.
+# Take whichever exists so either provenance feeds this step.
+_TJ = [os.path.join(OUTDIR, n) for n in ("ndcgtree.json", "ndcgtree16.json")]
+TREE_JSON = next((p for p in _TJ if os.path.exists(p)), _TJ[0])
 VAL16_JSON = os.path.join(OUTDIR, "ndcgtree16.json")
 VAL16_NPZ = os.path.join(OUTDIR, "ndcgtree16_per_user.npz")
 TEST16_JSON = os.path.join(OUTDIR, "ndcgtree16test.json")
