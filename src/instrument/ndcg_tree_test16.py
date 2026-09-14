@@ -205,7 +205,12 @@ def main():
 
     tree = json.load(open(TREE_JSON))
     assert tree["citable"] and not tree["SANITY"] and tree["split"] == "validation"
-    assert tree["total_L"] == 15 and tree["tower"] == os.path.basename(args.snapshot)
+    # The 15 is legacy: ml-25m grew its tree under a 15-question budget grid and this step exists
+    # to reconcile it with the 16-question comparison. A tree grown directly at L=16 is a
+    # stronger object -- it actually spent 16 questions rather than carrying a bolted-on 16th --
+    # so accept either, and take the leaf tail length from the tree instead of assuming 15.
+    _TL = int(tree["total_L"])
+    assert _TL in (15, TOTAL_L) and tree["tower"] == os.path.basename(args.snapshot)
     nodes, leaves_meta = tree["nodes"], tree["leaf_table"]
     log("#" * 110)
     log(f"# THE TEST LOOK (author-authorised, ONE look). Tree FROZEN: {tree['n_nodes']} nodes, "
@@ -252,7 +257,7 @@ def main():
         prefix = [(int(a), int(b)) for a, b in nodes[nid]["path"]]
         pool_n = [q for q in pool if q not in set(prefix)]
         old_steps = [(int(a), int(b)) for a, b in nodes[nid]["steps"]]
-        assert len(old_steps) == 15 - depth
+        assert len(old_steps) == _TL - depth
         src = os.path.join(TREE_HEAPS, f"node_{nid}.json")
         dst = os.path.join(HEAPDIR, f"node_{nid}.json")
         assert os.path.exists(src), f"leaf heap missing: {src}"
