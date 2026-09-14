@@ -257,7 +257,9 @@ def main():
         prefix = [(int(a), int(b)) for a, b in nodes[nid]["path"]]
         pool_n = [q for q in pool if q not in set(prefix)]
         old_steps = [(int(a), int(b)) for a, b in nodes[nid]["steps"]]
-        assert len(old_steps) == _TL - depth
+        # An INHERITING leaf records depth+1 but keeps its PARENT's path, so its tail is
+        # _TL - len(path), not _TL - depth. ml-25m never grew deep enough to create one.
+        assert len(old_steps) == _TL - len(prefix)
         src = os.path.join(TREE_HEAPS, f"node_{nid}.json")
         dst = os.path.join(HEAPDIR, f"node_{nid}.json")
         assert os.path.exists(src), f"leaf heap missing: {src}"
