@@ -260,30 +260,38 @@ def main():
         # An INHERITING leaf records depth+1 but keeps its PARENT's path, so its tail is
         # _TL - len(path), not _TL - depth. ml-25m never grew deep enough to create one.
         assert len(old_steps) == _TL - len(prefix)
-        src = os.path.join(TREE_HEAPS, f"node_{nid}.json")
-        dst = os.path.join(HEAPDIR, f"node_{nid}.json")
-        assert os.path.exists(src), f"leaf heap missing: {src}"
-        if not os.path.exists(dst):
-            shutil.copy2(src, dst)            # HARD RULE 11(e): never share an output path
-        bnev = int(json.load(open(dst))["nev"])
-        set_active_rows(Ev, rows); Ev["memo"] = {}; Ev["n_evals"] = 0; Ev["t_evals"] = 0.0
-        t0 = time.time()
-        want = TOTAL_L - depth
-        seq, gains, nev = greedy_certified(Ev, rows, pool_n, want, args.objective, f"{nid}/ext",
-                                           prefix=prefix, heap_path=dst)
-        assert len(seq) == want, f"{nid}: {len(seq)} picks, wanted {want}"
-        assert nev >= bnev, (f"{nid}: did NOT resume ({nev} evals vs {bnev} banked); a cold reseed "
-                             f"restarts the counter")
-        assert [tuple(q) for q in seq[:len(old_steps)]] == old_steps, \
-            (f"{nid}: RESUME INFIDELITY -- first {len(old_steps)} picks CHANGED.\n"
-             f"  banked  {old_steps}\n  resumed {[tuple(q) for q in seq[:len(old_steps)]]}")
+        if _TL == TOTAL_L:
+            # The tree already spends the whole budget: nothing to extend. An INHERITING leaf
+            # also has no heap of its own to resume -- it ran no search, it reuses its parent's
+            # measured tail. Take the banked order as it stands.
+            seq = old_steps
+            gains = [float(g) for g in nodes[nid]["gains"]]
+            nev = bnev = 0
+            t0 = time.time()
+        else:
+            src = os.path.join(TREE_HEAPS, f"node_{nid}.json")
+            dst = os.path.join(HEAPDIR, f"node_{nid}.json")
+            assert os.path.exists(src), f"leaf heap missing: {src}"
+            if not os.path.exists(dst):
+                shutil.copy2(src, dst)     # HARD RULE 11(e): never share an output path
+            bnev = int(json.load(open(dst))["nev"])
+            set_active_rows(Ev, rows); Ev["memo"] = {}; Ev["n_evals"] = 0; Ev["t_evals"] = 0.0
+            t0 = time.time()
+            want = TOTAL_L - len(prefix)
+            seq, gains, nev = greedy_certified(Ev, rows, pool_n, want, args.objective,
+                                               f"{nid}/ext", prefix=prefix, heap_path=dst)
+            assert len(seq) == want, f"{nid}: {len(seq)} picks, wanted {want}"
+            assert nev >= bnev, f"{nid}: did NOT resume ({nev} evals vs {bnev} banked)"
+            assert [tuple(q) for q in seq[:len(old_steps)]] == old_steps, (
+                f"{nid}: RESUME INFIDELITY -- first {len(old_steps)} picks CHANGED")
         own = prefix + [(int(a), int(b)) for a, b in seq]
-        assert len(own) == TOTAL_L
+        assert len(own) == TOTAL_L, f"{nid}: own sequence {len(own)}, expected {TOTAL_L}"
         rec = {"nid": nid, "depth": depth, "n_val": len(rows), "rows_val": rows,
                "path": [[int(a), int(b)] for a, b in prefix],
                "own_sequence": [[int(a), int(b)] for a, b in own],
                "new_question": [int(seq[-1][0]), int(seq[-1][1])],
-               "new_question_gain": float(gains[-1]), "prefix_unchanged": True,
+               "new_question_gain": float(gains[-1]) if gains else 0.0,
+               "prefix_unchanged": True,
                "n_evals_new": int(nev - bnev),
                "minutes_extend": round((time.time() - t0) / 60, 2),
                "genre_face_validity": meta["genre_face_validity"],
