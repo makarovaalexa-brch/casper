@@ -57,10 +57,10 @@ $+0.01035$. Both results hold
 on a second dataset. Two further results explain why this had not been observed. Published split
 criteria are close to uninformative about the metric they stand in for, correlating with measured
 NDCG@10 gains at $+0.010$, $-0.060$ and $-0.104$ and recovering $11$--$34\%$ of the gain a uniformly
-random choice leaves unrealised. And in a re-implementation of eleven published selectors and three
-literature heuristics under one contract, every one is below a fixed order chosen by greedily
-maximising NDCG@10 at every budget from one to sixteen questions -- a comparator none of those papers
-was tested against.
+random choice leaves unrealised. And on ML-25M, in a re-implementation of eleven published selectors
+and three literature heuristics under one contract, every one is below a fixed order chosen by
+greedily maximising NDCG@10 at every budget from one to sixteen questions -- a comparator none of
+those papers was tested against.
 \keywords{Preference elicitation \and Cold start \and Conversational recommendation \and
 Reproducibility \and Evaluation.}
 \end{abstract}
@@ -161,11 +161,12 @@ answers including refusals.
 No paper in this literature reports a comparison against a question order built by maximising the
 metric it reports. Comparators are instead popularity, entropy and HELF
 heuristics~\cite{rashid2002getting,rashid2008learning}, random orders, or other methods from the same
-family; Section~\ref{sec:rq3} audits all fifteen. Greedy SLIM~\cite{proissl2024greedyslim} is the closest
+family; Section~\ref{sec:rq3} audits fifteen -- the battery's published methods together with Lin et
+al. and Gharahighehi et al., which are audited but not run. Greedy SLIM~\cite{proissl2024greedyslim} is the closest
 protocol sibling -- ML-25M, NDCG@10, the same tail definition -- but its selection objective is a
-SLIM squared loss. One qualification is due: Golbandi's tree did beat a metric-optimised static seed
-set in 2011~\cite{golbandi2010bootstrapping}, when the split criterion essentially was the reported
-metric. Since evaluation moved to truncated top-$k$ ranking, that comparison has not been repeated.
+SLIM squared loss. One qualification is due: Golbandi's tree~\cite{golbandi2011adaptive} did beat a metric-optimised
+static seed set~\cite{golbandi2010bootstrapping}, when the split criterion essentially was the
+reported metric. Since evaluation moved to truncated top-$k$ ranking, that comparison has not been repeated.
 
 \paragraph{What the question bank contains.}
 Asking about attributes rather than items is established. ConUCB and its
@@ -202,9 +203,9 @@ methods~\cite{krichene2020sampled}, and a model that received no answer is score
 rather than overwritten by a popularity row. Separation is a paired
 percentile bootstrap over the per-user difference, 10{,}000 resamples clustered over users. No
 family-wise correction is applied: the battery claims rest on directional consistency across whole
-tables, and the three cells where a single interval carries a claim were specified before the test cohort
-was constructed: CASPER's full and tail gains at $K{=}16$ and the measured
-criterion's gain in the ablation (Table~\ref{tab:criterion}). Every other interval is descriptive.
+tables, and the two cells where a single interval carries a claim were specified before the test
+cohort was constructed: CASPER's full and tail gains at $K{=}16$, which are also the measured
+criterion's gains in the ablation (Table~\ref{tab:criterion}). Every other interval is descriptive.
 
 \paragraph{The instrument.}
 The frozen recommender every selector is scored with is a two-tower set encoder that ingests an
@@ -214,7 +215,8 @@ interview~\cite{anon_instrument}. It reaches full/tail NDCG@10 $0.3496/0.2491$ a
 $0.3540/0.2497$ rebuilt here, indistinguishable on the tail (paired interval spanning zero) and
 $1.2\%$ short on the full profile, so elicitation is not measured against a weak
 recommender~\cite{dacrema2019progress,steck2019ease}. Its second channel folds concept questions: the
-1{,}031 MovieLens Tag Genome tags (``dark humour'', ``courtroom''), each a whitened centroid of its
+1{,}031 MovieLens Tag Genome tags that carry at least thirty member items at relevance $0.5$
+(``dark humour'', ``courtroom''), each a whitened centroid of its
 member items, answered with a signed behavioural affinity read from the user's history.
 
 \paragraph{Answers and interface.}
@@ -428,13 +430,6 @@ selects the measured argmax at no node. At the root the logistic criterion's arg
 while variance ranks that question 250th of 1{,}000 and the pairwise loss 75th. They agree with the
 metric where the cohort is largest and stop agreeing where an adaptive method must earn its keep.
 
-\paragraph{Answer to RQ2.}
-Substituting the measured metric for the published criterion inside Golbandi's interview tree,
-everything else held fixed, places the interview above the static order from four questions onward
-on both axes ($+0.01035$ full, $+0.00705$ tail at sixteen), where the five alternatives remain
-below it, the published ones by three times that margin. They remain below it because they are close to uninformative
-about the reported metric at the states an interview visits.
-
 \section{RQ3: Why This Had Not Been Observed}
 \label{sec:rq3}
 
@@ -450,7 +445,8 @@ comparator for those selectors is the greedy items-only sequence; the combined s
 \centering
 \caption{The battery: one contract, 10{,}000 test users, full catalogue, full/tail NDCG@10.
 ans@16 is the mean number of the sixteen questions a user could answer; answer-free popularity
-reference $.1626/.0262$; bold is best per column, excluding the oracle. $^\star$ interval excluding
+reference $.1626/.0262$, against which the recommender's own empty interview reads $.1586/.0282$;
+bold is best per column, excluding the oracle. $^\star$ interval excluding
 zero; $^\S$ value-free; $^\dagger$ a reduced latent-only acquisition, not the published EDDI
 criterion. Golbandi's tree has no $k{=}16$ row ($3^k$ patterns fragment its cohort). CASPER and the
 greedy orders receive a metric search no ported method receives, and select from this
@@ -499,12 +495,12 @@ clairvoyant oracle & --- & .1893/.0680 & .2194/.0965 & .2544/.1281 & .2930/.1597
 \paragraph{Every published method lands below the fixed order.}
 At sixteen questions the greedy items-only sequence reaches $.2447/.1017$, against $.2303/.0924$ for
 the entropy$_0$ heuristic~\cite{rashid2008learning} and $.2166/.0839$ for GLM-UCB. The strongest
-items-only static order leads the best adaptive selector
-by $.0281^\star$ $[.0247,.0314]$ full and $.0178^\star$ $[.0145,.0210]$ tail, twice that selector's deficit against the heuristic. Tuning does not change this: at the constants
-chosen on validation GLM-UCB and Thompson gain $+.0068$ and $+.0032$ over their published values and
-still trail the combined static order by $-.0356^\star$ and $-.0432^\star$. Widened to every other selector in the table, 138 cells in all, the combined and concepts-only orders lead and
-separate in all 138 and the items-only order in 136, the exceptions being tail cells separating
-neither way.
+items-only static order leads GLM-UCB by $.0281^\star$ $[.0247,.0314]$ full and $.0178^\star$ $[.0145,.0210]$ tail, twice that selector's deficit against the heuristic. Tuning does not change this: at the constants
+chosen on validation GLM-UCB and Thompson gain $+.0068$ and $+.0032$ over their published values,
+reaching $.2234$ and $.2158$, and still trail the combined static order by $-.0356^\star$ and
+$-.0432^\star$. Widened to all twelve adaptive selectors, 118 cells in all, the combined and concepts-only orders
+lead and separate in every one and the items-only order in 114; the four exceptions are tail cells
+that separate in neither direction.
 
 \paragraph{The loss is not a failure to branch.}
 Thompson sampling conducts a distinct interview for every one of the 10{,}000 users from the fourth
@@ -514,8 +510,9 @@ answers where Thompson collects 3.39, because criteria preferring high posterior
 items almost no user has consumed. It is not the whole mechanism: GLM-UCB collects 5.24 at that rate
 and still loses at every budget, and the greedy items-only order wins while collecting 3.11. Several methods described as adaptive by their own authors turn out not to condition on
 answers at all: IGCN is the global information-gain static order at four questions or fewer, BALD's
-acquisition is constant under a homoscedastic linear-Gaussian likelihood, and A-optimal design
-contains the questions and not the answers. The last two are marked value-free in
+acquisition is constant under the homoscedastic linear-Gaussian likelihood our port assumes, though
+not under the original's probit likelihood, and A-optimal design contains the questions and not the
+answers by construction. The last two are marked value-free in
 Table~\ref{tab:battery}; IGCN is not, because it does condition beyond four questions.
 
 \paragraph{No published rule optimises the reported metric.}
@@ -550,12 +547,9 @@ official experiments.
 
 \paragraph{Where the ordering reverses.}
 It reverses on Golbandi's leaf model, the one consumer here that reads the did-not-answer branch:
-there Thompson sampling beats the static order at every budget it runs at
-(Table~\ref{tab:consumers}).
-
-\paragraph{Answer to RQ3.}
-Under one contract, no published selector reaches a fixed order chosen by greedy maximisation of
-NDCG@10 at any budget, and the shortfall is not a failure to branch.
+there CASPER falls below the static order at eight questions (Table~\ref{tab:consumers}). The static
+order still leads every published selector on that consumer, so the answer to RQ3 does not turn on
+which of the three we score through.
 
 \paragraph{Both results hold on a second domain.}
 Everything above was re-measured end to end on Goodreads~\cite{wan2018goodreads}: 18{,}430 books and
@@ -614,9 +608,10 @@ deterministic, and the search it receives is noted with the results it produces
 Put the reported metric into the split criterion and Golbandi's interview tree rises above a strong
 static order ($+0.01035$ at sixteen questions), where the five alternatives fitted by the same
 search do not; change what the system asks about rather than how it chooses, and the gain is larger
-still ($+0.01430$). Select questions by the metric the system is judged on rather than a surrogate,
-and establish the recommender that consumes the answers first: changing it moved our numbers further
-than changing the selector did.
+still ($+0.01430$). No published selector we ported reaches that order at any budget, and the
+shortfall is not a failure to branch. Select questions by the metric the system is judged on rather
+than a surrogate, and establish the recommender that consumes the answers first: changing it moved
+our numbers further than changing the selector did.
 
 \bibliographystyle{splncs04}
 \bibliography{refs}
