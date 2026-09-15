@@ -171,3 +171,33 @@ RBMF: `.0000/.0000` is a degenerate ranking, not a measurement, and two of the "
 consumers leaned on it — the interface limitation survives as one sentence. The candidate-bank
 asymmetry is disclosed (ported methods select over the full catalogue, ours over 1,000 — a
 restriction, not a privilege). "138 cells" counts every other selector, not every adaptive one.
+
+### "Surrogate static" was never missing — it is the heuristics block
+
+Two reviewers asked for a static order selected by each surrogate, so each criterion's own
+conditioning gain could be computed. Before building it, checked what a surrogate-selected static
+order actually is: **a fixed question order chosen by a non-metric criterion — which is exactly what
+Rashid's heuristics are**, and they are already in Table 3.
+
+| static order, selected by | full/tail @16 |
+|---|---|
+| greedy, **measured NDCG@10** | **.2447/.1017** |
+| entropy0 (surrogate) | .2303/.0924 |
+| popularity (surrogate) | .2228/.0848 |
+| HELF (surrogate) | .2157/.0838 |
+
+So a surrogate picking a STATIC order also loses to the metric-picked static order, by .0144 to
+.0290 — evidence that the deficit is the criterion rather than the branching.
+
+★ **And one matched static/adaptive pair already exists**: entropy0 (.2303) and IGCN (.2239) score the
+same information-theoretic family, one without branching and one with. **Conditioning under that
+criterion loses 0.0064** — the same direction as our result. Closely matched rather than identical
+(IGCN scores cluster-label information gain from a live neighbourhood, entropy0 scores rating
+entropy), and stated that way in the paper.
+
+Both facts are now two sentences in RQ2. The matched variance-static / pairwise-static /
+logistic-static orders remain unbuilt; they are a stronger version of an answer the paper can already
+give, not a gap in it.
+
+★ **Check what an object IS before costing a run to build it.** I told the author this was a missing
+arm needing new code; it was three rows of an existing table.

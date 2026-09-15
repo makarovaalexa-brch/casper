@@ -170,13 +170,12 @@ metric. Since evaluation moved to truncated top-$k$ ranking, that comparison has
 \paragraph{What the question bank contains.}
 Asking about attributes rather than items is established. ConUCB and its
 successors~\cite{zhang2020conucb,wang2023conlinucb,liu2025clisk} ask about a key-term or an item in
-one algorithm, formalising the item-versus-concept channel in 2020, and CLiME runs on ML-25M; the
-family reports cumulative regret over $T$ rounds rather than post-interview held-out ranking, so a
-ported policy is gated on reproducing the rule as written rather than on matching a published
-number, since these papers report cumulative regret and never compute a ranking metric. Gharahighehi et al.~\cite{gharahighehi2025pairwise}
-add attribute nodes to a Golbandi-style tree and report that attributes help, on RMSE over 1{,}701
-users and 4{,}793 artists; their split criterion is prediction error, the criterion our ablation runs
-in Table~\ref{tab:criterion}. Our claim is therefore not that attribute questions help, which is
+one algorithm, formalising the item-versus-concept channel in 2020, and CLiME runs on ML-25M. The
+family reports cumulative regret rather than post-interview held-out ranking and never computes a
+ranking metric, so a ported policy is gated on reproducing the rule as written rather than on
+matching a published number. Gharahighehi et al.~\cite{gharahighehi2025pairwise} add attribute nodes
+to a Golbandi-style tree and report that attributes help, on RMSE; their split criterion is
+prediction error, the criterion our ablation runs in Table~\ref{tab:criterion}. Our claim is therefore not that attribute questions help, which is
 known, but why: we attribute the gain to the answer rate rather than to the breadth of the question,
 and measure both terms separately. The
 reinforcement-learning
@@ -234,7 +233,7 @@ answer set and ranks the catalogue. The two vary independently.
 
 \paragraph{Ports and tuning.}
 Each published method is re-implemented from its paper and gated on reproducing its published
-construction on the method's own recommender and protocol before it is scored under ours; five of the
+construction on the method's own recommender and protocol before it is scored under ours; five of
 the ported methods have such a native check -- Golbandi's tree, Hu and Yu's criteria, IGCN, DRE and
 the reduced EDDI acquisition -- while the heuristics and the bandits do not, and gate failures are
 reported rather than scored: EDDI's published criterion could not be validated natively (pooled average rank $3.402$
@@ -322,7 +321,7 @@ Only the scalar a question is scored by separates CASPER from the published crit
 one thing we vary
 (Table~\ref{tab:criterion}): same tree code, branch rule, minimum leaf size, answer contract, recommender, candidate mask, pool, cohorts and budget, with the split criterion replaced by each
 published alternative in turn, each scored through its own second-order split gain with nothing
-sampled (the pairwise loss sums over all $137{,}591{,}707$ fold-in pairs). Two shuffle controls
+sampled. Two shuffle controls
 complete the set, a uniform draw over the pool and one restricted to candidates whose split clears
 the minimum leaf size, the latter the fair control since it destroys only the choice of question.
 
@@ -358,19 +357,22 @@ shuffle, min-leaf-respecting & --- & --- & --- & $-0.04817^\star$ & $-0.04485^\s
 
 Exactly one of the six criteria places the adaptive interview above the static order. All six are
 scored against the same comparator, the order this machinery finds when it maximises the metric, so
-the table isolates the criterion rather than the value of branching under each criterion in turn. Three readings follow. First, \emph{the separating axis is measured
+the table isolates the criterion rather than the value of branching under each criterion in turn.
+Surrogate-selected static orders are not missing from the comparison: the three literature
+heuristics are exactly that, and each loses to the metric-selected order by $.0144$ to $.0290$
+(Table~\ref{tab:battery}). Entropy$_0$ and IGCN, the one closely matched pair, score the same
+information-theoretic family without and with branching, and branching loses $.0064$. Three readings follow. First, \emph{the separating axis is measured
 versus surrogate, not ranking versus rating}. Hu and Yu's pairwise rank loss and Golbandi's rating
 variance are indistinguishable on our metric, $+0.00020$ $[-0.00331,+0.00371]$ full and $-0.00092$
 $[-0.00448,+0.00277]$ tail, the only null in the matrix, so on this dataset replacing a rating surrogate with a ranking surrogate changed
 nothing. Second, \emph{the failure is in the approximation, not in the shape of the loss}. At the root the
 measured held-out pairwise rank loss tracks measured NDCG@10 at Spearman $+0.784$ and forgoes only
-$+0.00459$, about $29\%$ of what a random pick forgoes, whereas the Taylor-approximated
-training-loss version of the same objective correlates at $-0.149$, ranks the metric's best question
-75th of 1{,}000 and forgoes $+0.01473$. What does the work is measuring the value of asking, not a
+$+0.00459$, whereas the Taylor-approximated training-loss version of the same objective correlates at
+$-0.149$ and forgoes $+0.01473$. What does the work is measuring the value of asking, not a
 training loss over the tree fit.
-Third, \emph{depth alone does not indicate conditioning}: the min-leaf-respecting shuffle grows
-deeper (7 against 5), wider (27 leaves against 15) and more varied (286 distinct questions against
-159) than the criterion that wins, and still loses by $-0.04817$. The logistic criterion is the sharpest
+Third, \emph{depth alone does not indicate conditioning}: the min-leaf-respecting shuffle grows deeper, wider and
+more varied than the criterion that wins -- 27 leaves against 15, 286 distinct questions against 159
+-- and still loses by $-0.04817$. The logistic criterion is the sharpest
 row: it opens on exactly our question, then degrades monotonically until its NDCG@10 falls below
 its own one-question value, so a criterion can agree with the metric on the easiest decision and
 still walk the interview downhill. The ablation is not a refutation of the published results on
