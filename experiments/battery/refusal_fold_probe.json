@@ -1,0 +1,244 @@
+{
+  "analysis": "refusal_fold_probe",
+  "label": "refusal_fold_probe",
+  "citable": true,
+  "split": "test",
+  "tower": "t2i26c_ep31.pt",
+  "concept_ckpt": "concept_cv3_ep08.pt",
+  "question": "does folding a refusal move the ranking away from the m=0 state? null hypothesis: difference is exactly 0.0",
+  "n_cohort": 10000,
+  "probes": [
+    {
+      "channel": "item",
+      "qid": 5,
+      "n_refusers": 5803,
+      "ask_nothing_full@10": 0.11719182947485438,
+      "after_refusal_full@10": 0.11645374042326324,
+      "diff_full@10": -0.0007380890515911496,
+      "ci95": [
+        -0.0012335703292677208,
+        -0.00023980353186752682
+      ],
+      "separates": true,
+      "max_abs_per_user": 0.19342640361727081,
+      "tail_diff@10": 0.0013783764710647213
+    },
+    {
+      "channel": "item",
+      "qid": 463,
+      "n_refusers": 7165,
+      "ask_nothing_full@10": 0.1264763877350086,
+      "after_refusal_full@10": 0.12875083825599026,
+      "diff_full@10": 0.00227445052098167,
+      "ci95": [
+        0.001470659045190189,
+        0.003058589396617979
+      ],
+      "separates": true,
+      "max_abs_per_user": 0.3562071871080222,
+      "tail_diff@10": 0.0011424632481512298
+    },
+    {
+      "channel": "item",
+      "qid": 368,
+      "n_refusers": 8926,
+      "ask_nothing_full@10": 0.14807910772057128,
+      "after_refusal_full@10": 0.14877490330183601,
+      "diff_full@10": 0.0006957955812647695,
+      "ci95": [
+        -0.0003220857096023071,
+        0.0017528538475160608
+      ],
+      "separates": false,
+      "max_abs_per_user": 0.5,
+      "tail_diff@10": 0.005881251203462597
+    },
+    {
+      "channel": "item",
+      "qid": 413,
+      "n_refusers": 9106,
+      "ask_nothing_full@10": 0.15191752740242803,
+      "after_refusal_full@10": 0.15132941189176027,
+      "diff_full@10": -0.0005881155106678022,
+      "ci95": [
+        -0.0014127909705870796,
+        0.00020592737816014904
+      ],
+      "separates": false,
+      "max_abs_per_user": 0.43067678311940283,
+      "tail_diff@10": 0.004831426478534511
+    },
+    {
+      "channel": "item",
+      "qid": 103,
+      "n_refusers": 8813,
+      "ask_nothing_full@10": 0.140930385129355,
+      "after_refusal_full@10": 0.14125326195140647,
+      "diff_full@10": 0.0003228768220514543,
+      "ci95": [
+        -0.0005054716812785002,
+        0.0011659764743016747
+      ],
+      "separates": false,
+      "max_abs_per_user": 0.36907024642854247,
+      "tail_diff@10": 0.004173907099216186
+    },
+    {
+      "channel": "item",
+      "qid": 1077,
+      "n_refusers": 9292,
+      "ask_nothing_full@10": 0.15091020514886644,
+      "after_refusal_full@10": 0.14968558201072965,
+      "diff_full@10": -0.0012246231381367698,
+      "ci95": [
+        -0.0021087957939240616,
+        -0.0003141778560901
+      ],
+      "separates": true,
+      "max_abs_per_user": 0.5,
+      "tail_diff@10": 0.004748369237381806
+    },
+    {
+      "channel": "item",
+      "qid": 697,
+      "n_refusers": 9353,
+      "ask_nothing_full@10": 0.1493654862657554,
+      "after_refusal_full@10": 0.14965140461825968,
+      "diff_full@10": 0.00028591835250422776,
+      "ci95": [
+        -0.0001944468165060795,
+        0.0007650486105493848
+      ],
+      "separates": false,
+      "max_abs_per_user": 0.3065735963827292,
+      "tail_diff@10": 0.0010091841304996978
+    },
+    {
+      "channel": "item",
+      "qid": 2009,
+      "n_refusers": 9587,
+      "ask_nothing_full@10": 0.1509710921640269,
+      "after_refusal_full@10": 0.15094316851596423,
+      "diff_full@10": -2.7923648062651676e-05,
+      "ci95": [
+        -0.0007503010113221331,
+        0.0006845615965860563
+      ],
+      "separates": false,
+      "max_abs_per_user": 0.36907024642854247,
+      "tail_diff@10": 0.003457929430523531
+    },
+    {
+      "channel": "concept",
+      "qid": 817,
+      "n_refusers": 210,
+      "ask_nothing_full@10": 0.04740926937165306,
+      "after_refusal_full@10": 0.0462498463911888,
+      "diff_full@10": -0.0011594229804642539,
+      "ci95": [
+        -0.003385960162160433,
+        0.0003425338137927828
+      ],
+      "separates": false,
+      "max_abs_per_user": 0.17723928678404774,
+      "tail_diff@10": 0.01000227135992726
+    },
+    {
+      "channel": "concept",
+      "qid": 890,
+      "n_refusers": 560,
+      "ask_nothing_full@10": 0.04876678845056157,
+      "after_refusal_full@10": 0.04842836676635311,
+      "diff_full@10": -0.0003384216842084586,
+      "ci95": [
+        -0.00191440519187981,
+        0.0011247006798544448
+      ],
+      "separates": false,
+      "max_abs_per_user": 0.22629438553091674,
+      "tail_diff@10": 0.006194098966671323
+    },
+    {
+      "channel": "concept",
+      "qid": 753,
+      "n_refusers": 1289,
+      "ask_nothing_full@10": 0.09399801486250917,
+      "after_refusal_full@10": 0.09653874551667735,
+      "diff_full@10": 0.0025407306541681903,
+      "ci95": [
+        0.0007988643818311797,
+        0.004272886967261376
+      ],
+      "separates": true,
+      "max_abs_per_user": 0.36907024642854247,
+      "tail_diff@10": 0.00683809957269966
+    },
+    {
+      "channel": "concept",
+      "qid": 424,
+      "n_refusers": 1923,
+      "ask_nothing_full@10": 0.06706730667152493,
+      "after_refusal_full@10": 0.07023797415465856,
+      "diff_full@10": 0.0031706674831336297,
+      "ci95": [
+        0.0018960073946849409,
+        0.004482108339843454
+      ],
+      "separates": true,
+      "max_abs_per_user": 0.41087008231048494,
+      "tail_diff@10": 0.005091076351881757
+    },
+    {
+      "channel": "concept",
+      "qid": 55,
+      "n_refusers": 3170,
+      "ask_nothing_full@10": 0.10108348112227032,
+      "after_refusal_full@10": 0.10065056524262235,
+      "diff_full@10": -0.00043291587964796273,
+      "ci95": [
+        -0.0013700059567845046,
+        0.0005400181216716169
+      ],
+      "separates": false,
+      "max_abs_per_user": 0.41087008231048494,
+      "tail_diff@10": 0.0029505674343847468
+    },
+    {
+      "channel": "concept",
+      "qid": 209,
+      "n_refusers": 4211,
+      "ask_nothing_full@10": 0.1055111617683142,
+      "after_refusal_full@10": 0.10702938160354455,
+      "diff_full@10": 0.0015182198352303594,
+      "ci95": [
+        0.0005498543072151663,
+        0.002494908672407143
+      ],
+      "separates": true,
+      "max_abs_per_user": 0.41087008231048494,
+      "tail_diff@10": 0.003785561739468844
+    },
+    {
+      "channel": "concept",
+      "qid": 571,
+      "n_refusers": 5015,
+      "ask_nothing_full@10": 0.09421361317238215,
+      "after_refusal_full@10": 0.09476331625886732,
+      "diff_full@10": 0.0005497030864851611,
+      "ci95": [
+        -0.00023724990577116194,
+        0.0013569437780011483
+      ],
+      "separates": false,
+      "max_abs_per_user": 0.41087008231048494,
+      "tail_diff@10": 0.002028201297870335
+    }
+  ],
+  "n_probes": 15,
+  "n_separating": 6,
+  "n_bit_identical_to_m0": 0,
+  "worst_mean_diff_full@10": -0.0012246231381367698,
+  "largest_abs_mean_shift": 0.0031706674831336297,
+  "verdict": "REFUSALS MOVE THE STATE, IN BOTH DIRECTIONS. 6 of 15 probed questions shift the refusers' ranking by a separating margin (2 down, 4 up); largest absolute mean shift 0.00317 full. A refused question is not state-preserving, but it is not a systematic penalty either, and the magnitude is to be read against the effects the paper reports (+0.01430 bank, +0.01035 criterion).",
+  "seconds": 185.3
+}

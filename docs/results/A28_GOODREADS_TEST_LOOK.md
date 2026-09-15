@@ -110,3 +110,64 @@ rule would have read the wrong search.
 **Not run on Goodreads:** the left half of Table 1 (the correlation exhibit) — 85 of 176 nodes have
 banked heaps there, since inheriting leaves run no search of their own. And the 23-arm battery, which
 is a port of thirteen published methods and is not feasible before the deadline.
+
+---
+
+## Adversarial ECIR panel, 2026-09-15 — and a stale table found because of it
+
+Three Fable reviewers with distinct personas (senior evaluation methodologist, CRS-subfield insider,
+final-year PhD student), PDF only, no repo, explicitly adversarial brief. Scores: **weak reject (4),
+weak accept (4), weak accept (3)**. The brief asked for hostility and withheld the artifacts, so the
+scores are not comparable with earlier panels; the findings are.
+
+### ⭐ TABLE 3'S TWO BANDIT ROWS WERE STALE — found by checking, not by agreeing
+
+Two reviewers said the p.10 GLM-UCB contrast did not reconcile with Table 3. **The prose was right and
+the table was wrong.** Recomputed from `act1_per_user_vectors.npz`:
+
+  items-only − GLM-UCB @K=16 full = **+0.02808 [+0.02475, +0.03139]** = the prose's `.0281 [.0247,.0314]`
+
+GLM-UCB's true mean is **.21662**; Table 3 printed **.2161**. Checking every banked row against the
+table found the two tuned-bandit rows stale and **every other row exact**:
+
+| row | printed | correct |
+|---|---|---|
+| GLM-UCB K=16 | .2161/.0833 | **.2166/.0839** |
+| Thompson K=1 | .1627/.0376 | **.1613/.0378** |
+| Thompson K=16 | .2135/.0878 | **.2126/.0878** |
+
+Tuning deltas recomputed against the corrected values: **+.0068 / +.0032**, not +.0073 / +.0023.
+(Tuned arms: GLM-UCB α=4 .22338/.08413, Thompson scale=0.5 .21582/.08812; both vs combined static
+−.03562 / −.04318, which the paper already had right.)
+
+★ **A number that appears in prose and in a table is two artifacts, not one.** These drifted apart
+and three review rounds plus my own full read did not catch it; recomputing from the per-user bank
+did, in two minutes.
+
+### The refusal probe — R2's hypothesis refuted
+
+`src/instrument/refusal_fold_probe.py`, artifact `refusal_fold_probe.json`. Question: does folding a
+refusal move the ranking below the m=0 state, which would charge an unanswerable question twice and
+inflate every answer-rate effect including RQ1's?
+
+15 probes across both channels (the first pass tested no concepts at all — the concept pool is ranked
+BY ANSWERABILITY, so its head has zero refusers by construction; probes must be spread down the
+ranking). **6 of 15 separate: 2 down, 4 up. Largest absolute shift 0.00317, and it is positive.**
+
+So a refusal is **not state-preserving** — the token carries information, by design — but it is **not
+a systematic penalty**, and at ≤0.003 against effects of +0.0143 and +0.0104 it cannot account for
+them. It also does **not** explain the sub-empty K=1 cells (Golbandi .1557 against .1586): those sit
+0.0029 below across the whole cohort where refusal shifts are ≤0.0012 and usually positive. A dislike
+answer legitimately moving a user off popular items is the likelier cause.
+
+### Other fixes this panel produced
+
+Counts made checkable against the tables (the battery is **eleven ported selectors + three literature
+heuristics**; "thirteen" was the comparator audit's count being reused for the battery, and no
+defensible thirteen exists for the battery). Related Work no longer claims fMF, Liu et al. and Nguyen
+et al. were "re-implemented and run here" — there is no selector module for any of them. The port gate
+no longer claims ports were required to beat popularity, which seven do not. Table 2 drops RecVAE and
+RBMF: `.0000/.0000` is a degenerate ranking, not a measurement, and two of the "four of five"
+consumers leaned on it — the interface limitation survives as one sentence. The candidate-bank
+asymmetry is disclosed (ported methods select over the full catalogue, ours over 1,000 — a
+restriction, not a privilege). "138 cells" counts every other selector, not every adaptive one.
