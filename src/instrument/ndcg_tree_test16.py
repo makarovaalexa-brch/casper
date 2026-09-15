@@ -314,6 +314,7 @@ def main():
 
     # free the validation environment before building the test one (two 10k cohorts at once is
     # ~6 GB of tower state on a 16 GB box with ~6.5 GB free -- HARD RULE 11(d)/(c))
+    pool_contract_val = Ev["pool_contract"]      # read it out before the env is released
     del Ev
     gc.collect()
     log("[mem] validation environment released before building the test cohort")
@@ -361,6 +362,7 @@ def main():
                        "new_question_gain": 0.0, "prefix_unchanged": True, "n_evals_new": 0,
                        "minutes_extend": 0.0, "genre_face_validity": [],
                        "val_gain_at15_vs_policyA": 0.0,
+                       "val_gain_at16": float("nan"), "val_gain_at16_tail": float("nan"),
                        "rows_test": unrouted, "n_test": len(unrouted), "unseen_fallback": True})
         assigned += len(unrouted)
     assert assigned == len(rows_test), \
@@ -415,7 +417,7 @@ def main():
             "surviving to test would mean the small leaves are genuinely better served; a rho that "
             "goes to zero or flips means the validation pattern was fitted noise.")}
 
-    n_neg_val = sum(1 for r in leaves if r["val_gain_at16"] < 0)
+    n_neg_val = sum(1 for r in ok if r["val_gain_at16"] < 0)
     n_neg_test = sum(1 for r in ok if r["test_gain_at16"] < 0)
 
     # ---- report ---------------------------------------------------------------------------------
@@ -466,7 +468,7 @@ def main():
            "objective": args.objective, "mask_policy": "B",
            # DERIVED stamp (2026-08-12 audit): "mask_policy" above is a label; these are read off the
            # masks this run actually scored through, so the artifact can state its own ruler.
-           "pool_contract_val": Ev["pool_contract"], "pool_contract_test": Et["pool_contract"],
+           "pool_contract_val": pool_contract_val, "pool_contract_test": Et["pool_contract"],
            "total_L": TOTAL_L,
            "budgets": list(BUDGETS), "n_val": len(rows_val), "n_test": len(rows_test),
            "comparator_label": COMPARATOR_LABEL, "comparator_note": COMPARATOR_NOTE,

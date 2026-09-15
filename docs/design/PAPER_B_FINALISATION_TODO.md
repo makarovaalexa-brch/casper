@@ -94,3 +94,26 @@ after 950.6 min: depth 11, 176 nodes, 116 leaves. On the VALIDATION cohort it be
 static order by **+0.03168 full / +0.01402 tail at K=16**, three times ML-25M's +0.01035 — but
 validation overstates (ML-25M's own validation figure was +0.02794 against +0.01035 on test), so this
 means nothing until the policy-B orders and the two test evaluations are run (~7 h).
+
+## Closed 2026-09-14 — T7 done; everything except T3
+
+**T7 (Goodreads) landed on TEST and is in the paper.** Both levers transfer: CASPER +0.01100* full /
++0.01059* tail at sixteen questions against ML-25M's +0.01035*/+0.00705*, separating from four
+questions onward; the bank result +0.00610*/+0.01105* against +0.01430*/+0.02199*. Full write-up
+`docs/results/A28_GOODREADS_TEST_LOOK.md`. Added to the paper as a closing paragraph plus
+Table 4 (a two-column dataset comparison, not a re-run of the battery), and the "one dataset"
+limitation is removed.
+
+**Paper state: exactly 12 content pages** (References begins at the top of page 13), 16 total, clean
+build, no leaked references, no AI/TODO/placeholder artifacts.
+
+Four defects found by the end-to-end read of the built PDF and fixed:
+- an orphan sentence fragment in RQ1 (`[+0.02430,+0.03037] at 1.79 against 1.75 answers.`), restored
+  to the answer-matched channel contrast it came from;
+- the consumers paragraph said "three further consumers / three of the four" while Table 2 has five
+  rows (RBMF was added to the table and the prose was never updated);
+- `The gain is not uniform.` closed RQ1 but is entirely about CASPER's leaves — moved into RQ2;
+- the RQ3 robustness note pointed "below" at a paragraph that is above it — now a table reference.
+
+**Only T3 (anonymised repository mirror) remains, on hold by instruction.** The footnote still reads
+"Anonymised repository: link to be added."

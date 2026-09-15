@@ -78,11 +78,37 @@ from run_battery_phaseA import bootstrap_ci
 from ndcg_tree import build_pool, split_rows, branch_of, leak_assert, BRANCHES
 import split_criteria as SC
 
-OUTDIR = os.path.join(_ROOT, "experiments", "battery")
+# Per-dataset results dir, single source of truth (run_battery_phaseA keys it off CASPER_DATASET).
+# Was hardcoded to experiments/battery, so a Goodreads run would have written on top of the certified
+# ML-25M ablation and its five grown trees -- HARD RULE 11e.
+from run_battery_phaseA import OUTDIR                             # noqa: E402
+
+
+def _first(*names):
+    """The first of these that exists under OUTDIR, else the first name (so the assert names it)."""
+    paths = [os.path.join(OUTDIR, n) for n in names]
+    return next((p for p in paths if os.path.exists(p)), paths[0])
+
+
 STATICB_JSON = os.path.join(OUTDIR, "greedy_static_policyB_combined.json")
 NDCGTREE_JSON = os.path.join(OUTDIR, "ndcgtree16.json")
-NDCGSTRUCT_JSON = os.path.join(OUTDIR, "ndcgtree.json")
-NDCGTEST_JSON = os.path.join(OUTDIR, "ndcgtree16test_policyB.json")
+# ML-25M grew at L=15 (ndcgtree.json) and extended to 16 (ndcgtree16.json), so structure and orders
+# live in two files. Goodreads grew directly at L=16, so one file carries both.
+NDCGSTRUCT_JSON = _first("ndcgtree.json", "ndcgtree16.json")
+# ML-25M's comparator was policy-A-SELECTED and had to be re-measured; Goodreads was policy B from
+# the start (greedy_static_i26c.json carries pool_policy: B), so the test look IS the citable one.
+NDCGTEST_JSON = _first("ndcgtree16test_policyB.json", "ndcgtree16test.json")
+# The CELF heaps must belong to THE TREE IN NDCGSTRUCT_JSON, not merely to a directory that exists.
+# Goodreads has both ndcgtree_heaps (an earlier L=15 grow) and ndcgtree16_heaps (the citable L=16
+# tree), so picking the first that exists would have read the wrong search's banked gains.
+HEAPS_DIR = os.path.join(OUTDIR,
+                         os.path.basename(NDCGSTRUCT_JSON)[:-len(".json")] + "_heaps")
+# HARD RULE 5 canonical snap: the m=0 test intercept under the policy-B pool, per dataset.
+TEST_INTERCEPT_SNAP = {"ml-25m": (0.15855, 0.02819), "goodreads": (0.09399, 0.00577)}
+# The VALIDATION m=0 intercept, asserted exactly (1e-9). Both values are read off an artifact
+# built by a different job -- greedy_static_i26c.json's `m0_policyB_full` -- so this is a real
+# cross-artifact snap, not the run checking its own arithmetic.
+VAL_INTERCEPT_SNAP = {"ml-25m": 0.15686538118354684, "goodreads": 0.0956569717207012}
 
 LABEL = "splitcrit"
 TOTAL_L = 16
@@ -456,11 +482,28 @@ def measure(E, tag, arm, leaf_orders, nodes, rows_all, seq_static, npz_bank):
     per_leaf = {}
     assigned, seen = 0, set()
     for nid in sorted(leaf_orders, key=lambda n: n):
+        if nid == "UNSEEN":
+            continue                      # added below, not a node; `route` cannot walk to it
         rows = route(E, nodes, nid, rows_all)
         assigned += len(rows)
         s = set(rows); assert not (seen & s), f"{arm}: routing is not disjoint"
         seen |= s
         per_leaf[nid] = rows
+    # UNSEEN ANSWER PATTERNS. A test user can reach a branch the tree never created, because no
+    # validation user took it. Such a user gets the STATIC order: the tree has no leaf, hence no
+    # conditioned question, for them (author ruling 2026-09-14, as in ndcg_tree_test16.py). Their
+    # contribution to this arm's difference is therefore exactly zero, by construction.
+    unrouted = [r for r in rows_all if r not in seen]
+    if unrouted:
+        frac = len(unrouted) / len(rows_all)
+        log(f"[{tag}/{arm}/unseen] {len(unrouted)} of {len(rows_all)} users ({frac:.2%}) follow an "
+            f"answer pattern absent from the validation cohort: no leaf exists, so they receive the "
+            f"static comparator order (unconditioned).")
+        assert frac < 0.01, (f"{arm}: unconditioned fallback covers {frac:.2%} of the cohort; above "
+                             f"1% the tree no longer routes the population it is measured on")
+        leaf_orders["UNSEEN"] = [[int(a), int(b)] for a, b in seq_static]
+        per_leaf["UNSEEN"] = unrouted
+        assigned += len(unrouted)
     assert assigned == len(rows_all), f"{arm}: routing lost users ({assigned} vs {len(rows_all)})"
     curves = {}
     for nid, rows in per_leaf.items():
@@ -702,7 +745,9 @@ def main():
     # is what routing needs) lives in the original ndcgtree.json. Same object, two artifacts.
     assert nd16["total_L"] == 16 and nd16["citable"]
     assert ndst["min_leaf"] == 200 and ndst["citable"] and ndst["split"] == "validation"
-    assert ndst["n_leaves"] == len(nd16["leaf_table"]) == 15
+    # 15 on ML-25M, 116 on Goodreads -- assert the two artifacts AGREE, not a literal count.
+    assert ndst["n_leaves"] == len(nd16["leaf_table"]), (
+        f'structure says {ndst["n_leaves"]} leaves, orders carry {len(nd16["leaf_table"])}')
     seq_static = [(int(a), int(b)) for a, b in stb["sequence"]][:total_L]
 
     log("#" * 110)
@@ -737,10 +782,12 @@ def main():
     icpt_v = genv_mean(Ev, [], rows_val)
     log("[snap/val] m=0 intercept " + format(icpt_v[0], ".8f") + " full / "
         + format(icpt_v[1], ".8f") + " tail")
-    assert abs(icpt_v[0] - 0.15686538118354684) < 1e-9, (
+    _vsnap = VAL_INTERCEPT_SNAP[os.environ.get("CASPER_DATASET", "ml-25m").lower()]
+    assert abs(icpt_v[0] - _vsnap) < 1e-9, (
         "CANONICAL SNAP FAILED: validation m=0 full is " + repr(icpt_v[0]) + ", the banked policy-B "
-        "value is 0.15686538118354684. The ruler moved -- STOP.")
-    log("[snap/val] PASS -- reproduces the banked policy-B validation intercept exactly")
+        "value is " + repr(_vsnap) + ". The ruler moved -- STOP.")
+    log("[snap/val] PASS -- reproduces the banked policy-B validation intercept exactly "
+        + repr(_vsnap))
 
     pool, item_pool, conc_pool = build_pool(Ev, 500, 500)
     if args.smoke:
@@ -784,7 +831,19 @@ def main():
                                            [{"nid": n} for n in blob["leaf_orders"]], total_L)
 
     nd_nodes = ndst["nodes"]
-    nd_leaves = {r["nid"]: r["own_sequence"] for r in nd16["leaf_table"]}
+    # ML-25M's ndcgtree16.json is the EXTEND job's output and names the full 16-question leaf order
+    # `own_sequence`; Goodreads grew directly at L=16 and names the same object `sequence`. Both
+    # include the path prefix (verified: every Goodreads leaf's sequence starts with its own path and
+    # is 16 long).
+    nd_leaves = {r["nid"]: (r["own_sequence"] if "own_sequence" in r else r["sequence"])
+                 for r in nd16["leaf_table"]}
+    # against the BANKED tree's own budget, not this run's: --smoke shortens total_L, and `measure`
+    # only ever takes own[:K], so a banked order at least as long as the budget is what is required.
+    _btl = int(nd16["total_L"])
+    for _nid, _sq in nd_leaves.items():
+        assert len(_sq) == _btl >= total_L, (
+            f"{_nid}: banked leaf order is {len(_sq)}, the banked tree says {_btl}, "
+            f"this run needs {total_L}")
     trees["ndcg"] = {"criterion": "ndcg", "nodes": nd_nodes, "leaf_orders": nd_leaves}
     out["structure"]["ndcg"] = structure("ndcg", nd_nodes, [{"nid": n} for n in nd_leaves], total_L)
     all_arms = list(arms) + ["ndcg"]
@@ -832,9 +891,11 @@ def main():
                 ic = genv_mean(E, [], rows)
                 log("[snap/test] m=0 intercept " + format(ic[0], ".5f") + " full / "
                     + format(ic[1], ".5f") + " tail")
-                assert abs(ic[0] - 0.15855) < 5e-5 and abs(ic[1] - 0.02819) < 5e-5, (
-                    "CANONICAL SNAP FAILED on test: " + repr(ic) + " vs the banked 0.15855/0.02819")
-                log("[snap/test] PASS -- reproduces MASK_POLICY_B_MIGRATION's banked test intercept")
+                _snap = TEST_INTERCEPT_SNAP[os.environ.get("CASPER_DATASET", "ml-25m").lower()]
+                assert abs(ic[0] - _snap[0]) < 5e-5 and abs(ic[1] - _snap[1]) < 5e-5, (
+                    "CANONICAL SNAP FAILED on test: " + repr(ic) + " vs the banked " + repr(_snap))
+                log("[snap/test] PASS -- reproduces this dataset's banked policy-B test intercept "
+                    + repr(_snap))
                 out["intercept_test_m0"] = {"full@10": ic[0], "tail@10": ic[1]}
             for kind in measure_order:
                 log("-" * 110)
@@ -854,7 +915,9 @@ def main():
             for K in BUDGETS:
                 for ax in ("full", "tail"):
                     got = out["arms"]["ndcg"]["cohort_test"][str(K)]["diff_" + ax + "@10"]
-                    want = ndt["cohort_weighted_test"][str(K)]["diff_" + ax + "@10_vs_policyB"]
+                    _cw = ndt["cohort_weighted_test"][str(K)]
+                    _k = "diff_" + ax + "@10_vs_policyB"
+                    want = _cw[_k] if _k in _cw else _cw["diff_" + ax + "@10"]
                     chk["K" + str(K) + "_" + ax] = {"recomputed": got, "banked": want,
                                                     "abs_dev": abs(got - want)}
                     assert abs(got - want) < 1e-6, (
@@ -873,7 +936,7 @@ def main():
         log("[corr] criterion-vs-MEASURED-NDCG over all candidates at every node of the real tree")
         set_active_rows(Ev, rows_val); Ev["memo"] = {}
         corr_stage(Ev, ev, memL, memD, pos_of, pool, rows_val, ndst["nodes"],
-                   os.path.join(OUTDIR, "ndcgtree_heaps"), Wd, bd, out)
+                   HEAPS_DIR, Wd, bd, out)
 
     # ------------------------------------------------------------------ report
     log("=" * 110)

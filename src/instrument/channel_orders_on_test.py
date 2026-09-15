@@ -84,8 +84,17 @@ def main():
                     default=os.path.join(OUTDIR, "greedy_static_policyB_concepts.json"))
     ap.add_argument("--combined_json",
                     default=os.path.join(OUTDIR, "greedy_static_policyB_combined.json"))
+    # ML-25M's combined order was SELECTED under policy A, so the clean comparator lives in the
+    # separate policy-B re-measurement and is banked under `policyB_*`. Goodreads was built under
+    # policy B from the start (`greedy_static_i26c.json` carries `pool_policy: B`, and the three
+    # rebuilt channel orders reproduce its arms bit-for-bit), so there is no second measurement and
+    # the comparator is the test look's own `cmp_*` payload. Same gate either way.
+    _pb = os.path.join(OUTDIR, "ndcgtree16test_policyB_per_user.npz")
     ap.add_argument("--tree_npz",
-                    default=os.path.join(OUTDIR, "ndcgtree16test_policyB_per_user.npz"))
+                    default=_pb if os.path.exists(_pb)
+                    else os.path.join(OUTDIR, "ndcgtree16test_per_user.npz"))
+    ap.add_argument("--tree_npz_key", default=None,
+                    help="banked comparator prefix in --tree_npz; inferred from the file if omitted")
     ap.add_argument("--label", default=LABEL)
     ap.add_argument("--full_threads", action="store_true")
     args = ap.parse_args()
@@ -139,7 +148,15 @@ def main():
     # ---------------------------------------------------------------- THE BANKED ASSERT
     gate = {"npz": os.path.basename(args.tree_npz), "checked": [], "all_bit_identical": None}
     z = np.load(args.tree_npz)
-    leaves = sorted({k.split("|")[1] for k in z.keys() if k.count("|") >= 2})
+    _key = args.tree_npz_key or ("policyB" if any(k.endswith("|policyB_full") for k in z.keys())
+                                 else "cmp")
+    log(f"[gate] comparator payload in {os.path.basename(args.tree_npz)} keyed `{_key}_*`")
+    gate["key"] = _key
+    # Leaves that received NO test users are never measured and bank nothing, and the Goodreads tree
+    # has several (117 leaves, 10,000 users). Take the nids that actually carry a test row slice --
+    # the coverage assert below is what guarantees nothing was dropped.
+    leaves = sorted({k.split("|")[1] for k in z.keys()
+                     if k.startswith("test|") and k.endswith("|rows")})
     pos = {int(r): i for i, r in enumerate(rows)}
     ok_all = True
     for K in BUDGETS:
@@ -149,7 +166,7 @@ def main():
             for nid in leaves:
                 lr = z[f"test|{nid}|rows"]
                 jj = np.asarray([pos[int(r)] for r in lr], np.int64)
-                ref[jj] = z[f"test|{nid}|{K}|policyB_{axis}"]
+                ref[jj] = z[f"test|{nid}|{K}|{_key}_{axis}"]
                 seen += len(lr)
             assert seen == len(rows), f"banked leaf slices cover {seen} of {len(rows)} test users"
             mine = banked[f"combined|{K}|{axis}"]
