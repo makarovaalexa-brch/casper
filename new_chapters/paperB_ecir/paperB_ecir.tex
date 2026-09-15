@@ -356,8 +356,9 @@ shuffle, min-leaf-respecting & --- & --- & --- & $-0.04817^\star$ & $-0.04485^\s
 \end{tabular}
 \end{table}
 
-Exactly one of the six criteria places the adaptive interview above the static order: changing
-nothing but the number a question is scored by flips the sign of the conditioning gain. Three readings follow. First, \emph{the separating axis is measured
+Exactly one of the six criteria places the adaptive interview above the static order. All six are
+scored against the same comparator, the order this machinery finds when it maximises the metric, so
+the table isolates the criterion rather than the value of branching under each criterion in turn. Three readings follow. First, \emph{the separating axis is measured
 versus surrogate, not ranking versus rating}. Hu and Yu's pairwise rank loss and Golbandi's rating
 variance are indistinguishable on our metric, $+0.00020$ $[-0.00331,+0.00371]$ full and $-0.00092$
 $[-0.00448,+0.00277]$ tail, the only null in the matrix, so on this dataset replacing a rating surrogate with a ranking surrogate changed
@@ -376,17 +377,16 @@ still walk the interview downhill. The ablation is not a refutation of the publi
 their own protocols.
 
 \paragraph{Who consumes the answers matters more than who selects them.}
-The criterion is computed through the recommender that then scores it, so we hand the same two
-banked interviews to two further consumers without regrowing or reselecting anything: Golbandi's leaf
-model~\cite{golbandi2011adaptive} and a conjugate belief accumulator over a frozen factorisation.
-CASPER leads the static order on the accumulator and on ours, and reverses on the leaf model at eight
-questions ($-0.01375^\star$). The larger effect is on the level rather than the ordering: every cell
-of our recommender's block exceeds every cell of every other block at the same budget, so the
-recommender that consumes the answers should be established first -- a selection result read off a
-weak consumer says more about the consumer than about the selector. Two is all this comparison can
-have: an item-vector model such as RecVAE~\cite{ren2020recvae} cannot read a concept answer at all,
-so a concept-opening interview reaches it as empty input, and Golbandi's leaf model is the only
-published consumer we found that models the did-not-answer branch.
+The criterion is computed through the recommender that then scores it, so we hand the same two banked
+interviews to Golbandi's leaf model~\cite{golbandi2011adaptive} and to a conjugate belief accumulator
+over a frozen factorisation, regrowing and reselecting nothing. CASPER leads on the accumulator and
+on ours, and reverses on the leaf model at eight questions ($-0.01375^\star$). The larger effect is
+on the level rather than the ordering: every cell of our recommender's block exceeds every cell of
+every other block at the same budget, so the recommender that consumes the answers should be
+established first. Two is all this comparison can have: an item-vector model such as
+RecVAE~\cite{ren2020recvae} cannot read a concept answer, so a concept-opening interview reaches it
+as empty input, and Golbandi's leaf model is the only published consumer we found that models the
+did-not-answer branch.
 
 \begin{table}[tbp]
 \centering
@@ -395,13 +395,13 @@ consumer changes, no popularity floor. The leaf model has no $K{=}16$ row, and $
 since both interviews ask the same question.}
 \label{tab:consumers}
 \footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{ll rrrr}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}ll rrrr@{}}
 \toprule
 consumer & interview & $K{=}2$ & $K{=}4$ & $K{=}8$ & $K{=}16$ \\
 \midrule
-our recommender & CASPER & $\mathbf{.2015}/.0675$ & $\mathbf{.2267/.0905}$ & $\mathbf{.2492/.1117}$ & $\mathbf{.2694/.1307}$ \\
- & static & $.1962/\mathbf{.0701}$ & $.2178/.0857$ & $.2386/.1033$ & $.2590/.1237$ \\
+our recommender & CASPER & $.2015/.0675$ & $.2267/.0905$ & $.2492/.1117$ & $.2694/.1307$ \\
+ & static & $.1962/.0701$ & $.2178/.0857$ & $.2386/.1033$ & $.2590/.1237$ \\
 \midrule
 Golbandi leaf & CASPER & $.1745/.0393$ & $.1858/.0526$ & $.1964/.0592$ & --- \\
  & static & $.1626/.0262$ & $.1746/.0478$ & $.2101/.0741$ & --- \\
@@ -423,9 +423,8 @@ and the logistic loss their experiments ran. Following any of them recovers only
 NDCG@10 a uniformly random pick leaves unrealised; the rank correlations are approximately zero and
 two of three are negative, so two of these surrogates point the wrong way, and the pairwise loss
 selects the measured argmax at no node. At the root the logistic criterion's argmax is the metric's,
-while variance ranks that question 250th of 1{,}000 and the pairwise loss 75th; one level down, no
-criterion does better than the others. They agree with the metric where the cohort is largest and
-stop agreeing where an adaptive method must earn its keep.
+while variance ranks that question 250th of 1{,}000 and the pairwise loss 75th. They agree with the
+metric where the cohort is largest and stop agreeing where an adaptive method must earn its keep.
 
 \paragraph{Answer to RQ2.}
 Substituting the measured metric for the published criterion inside Golbandi's interview tree,
@@ -508,11 +507,10 @@ neither way.
 \paragraph{The loss is not a failure to branch.}
 Thompson sampling conducts a distinct interview for every one of the 10{,}000 users from the fourth
 question onward and still loses to one order asked of everybody; GLM-UCB reaches 5{,}739 distinct
-interviews by the sixteenth. Part of the mechanism is the answered column: the static order collects
-5.52 answers where Thompson collects 3.39 and the latent-only acquisition 3.84, because criteria
-preferring high posterior movement select items almost no user has consumed. It is not the whole
-mechanism, since GLM-UCB collects 5.24 answers, essentially the static rate, and still loses at every
-budget. Several methods described as adaptive by their own authors turn out not to condition on
+interviews by the sixteenth. Part of the mechanism is the answered column: entropy$_0$ collects 5.52
+answers where Thompson collects 3.39, because criteria preferring high posterior movement select
+items almost no user has consumed. It is not the whole mechanism: GLM-UCB collects 5.24 at that rate
+and still loses at every budget, and the greedy items-only order wins while collecting 3.11. Several methods described as adaptive by their own authors turn out not to condition on
 answers at all: IGCN is the global information-gain static order at four questions or fewer, BALD's
 acquisition is constant under a homoscedastic linear-Gaussian likelihood, and A-optimal design
 contains the questions and not the answers. The last two are marked value-free in
@@ -603,9 +601,10 @@ greedy static order, items$+$concepts & $.2590/.1237$ & $.1713/.0323$ \\
 
 Answer values are behavioural throughout; the modelling assumption is the answerability judgement,
 for which we take having rated the item, and a behavioural answer is one the user once gave rather
-than one they would give in conversation. The selector comparison repeats across four further
-consumers of the answers, but the measured gains the criterion-regret table scores against are
-computed through our recommender alone. Our comparator has no published counterpart; the recipe is
+than one they would give in conversation. The selector comparison repeats across two further consumers of the answers, and no
+more were available: the published alternatives take an item vector and cannot read a concept answer.
+The measured gains the criterion-regret table scores against are computed through our recommender
+alone. Our comparator has no published counterpart; the recipe is
 deterministic, and the search it receives is noted with the results it produces
 (Table~\ref{tab:battery}).
 
