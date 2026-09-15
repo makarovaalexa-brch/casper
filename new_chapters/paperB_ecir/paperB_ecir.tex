@@ -547,9 +547,9 @@ official experiments.
 
 \paragraph{Where the ordering reverses.}
 It reverses on Golbandi's leaf model, the one consumer here that reads the did-not-answer branch:
-there CASPER falls below the static order at eight questions (Table~\ref{tab:consumers}). The static
-order still leads every published selector on that consumer, so the answer to RQ3 does not turn on
-which of the three we score through.
+there CASPER falls below the static order at eight questions (Table~\ref{tab:consumers}). Thompson
+sampling and the reduced EDDI acquisition stay below it there too, so the answer to RQ3 does not turn
+on the consumer.
 
 \paragraph{Both results hold on a second domain.}
 Everything above was re-measured end to end on Goodreads~\cite{wan2018goodreads}: 18{,}430 books and
@@ -597,10 +597,8 @@ greedy static order, items$+$concepts & $.2590/.1237$ & $.1713/.0323$ \\
 
 Answer values are behavioural throughout; the modelling assumption is the answerability judgement,
 for which we take having rated the item, and a behavioural answer is one the user once gave rather
-than one they would give in conversation. The selector comparison repeats across two further consumers of the answers, and no
-more were available: the published alternatives take an item vector and cannot read a concept answer.
-The measured gains the criterion-regret table scores against are computed through our recommender
-alone. Our comparator has no published counterpart; the recipe is
+than one they would give in conversation. The selector comparison repeats across two further consumers, but the measured gains
+the criterion-regret table scores against are computed through our recommender alone. Our comparator has no published counterpart; the recipe is
 deterministic, and the search it receives is noted with the results it produces
 (Table~\ref{tab:battery}).
 
