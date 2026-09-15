@@ -117,3 +117,21 @@ Four defects found by the end-to-end read of the built PDF and fixed:
 
 **Only T3 (anonymised repository mirror) remains, on hold by instruction.** The footnote still reads
 "Anonymised repository: link to be added."
+
+## T3 CLOSED 2026-09-15 — by decision, not by building the mirror
+
+Author ruling: release on publication rather than at submission. The footnote "Anonymised repository:
+link to be added." is gone; the paper now reads *"Code, the fitted question orders and the per-user
+score vectors behind every interval reported here will be released on publication."*
+
+**Why deferring is strictly cheaper.** ECIR 2027's full-paper CFP has **no code requirement** — there
+is a separate Reproducibility track for that — so a link is goodwill, not an expectation. And the
+expensive part of an anonymised mirror is the anonymisation: this repo is one monorepo holding Papers
+A, B and C, the chapter drafts and every experiment, with commits authored under the author's real
+name, so proxying it through anonymous.4open.science would have leaked far more than Paper B needs.
+After acceptance none of that matters and the mirror becomes an ordinary public repo.
+
+**Carry forward to camera-ready:** build the release repo, and add the Springer AI-use statement
+(LLM assistance in drafting requires disclosure; minor copy-editing does not).
+
+**The paper is now submittable with nothing outstanding.**
