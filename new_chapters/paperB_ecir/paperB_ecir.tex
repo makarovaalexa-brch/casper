@@ -197,7 +197,12 @@ We use the strong-generalisation split of Liang et al.~\cite{liang2018variationa
 MovieLens-25M~\cite{harper2015movielens}, the most recent stable MovieLens release carrying both
 ratings and the Tag Genome that the concept channel needs, restricted to the project catalogue: 18{,}359
 train-vocabulary items, 140{,}768 train / 10{,}000 validation / 10{,}000 test users, per-user 80/20
-fold-in/target, seed 98765. The metric is full and tail NDCG@10, the tail measured on a head-deleted
+fold-in/target, seed 98765. The same recipe, constants and seed are applied to
+Goodreads~\cite{wan2018goodreads} as a second dataset, whose catalogue is the 18{,}430 most-rated
+books and whose cohort is 160{,}768 sampled users split 140{,}768 / 10{,}000 / 10{,}000 -- both
+matched to ML-25M's, so the two are read over equally sized catalogues and cohorts -- and whose
+concept channel is 2{,}408 user-assigned shelves in place of the tag genome. Every component is
+refitted there and nothing is carried across. The metric is full and tail NDCG@10, the tail measured on a head-deleted
 candidate list under the short-head definition of Cremonesi et al.~\cite{cremonesi2010performance},
 scored with the recommender's learned decoder bias. The full catalogue is ranked with no negative
 sampling, since sampled ranking metrics do not preserve the ordering of
@@ -216,7 +221,8 @@ cold-start curve on both axes, and identity with the frozen decoder at the empty
 interview~\cite{anon_instrument}. It reaches full/tail NDCG@10 $0.3496/0.2491$ against a RecVAE bar~\cite{ren2020recvae} of
 $0.3540/0.2497$ rebuilt here, indistinguishable on the tail (paired interval spanning zero) and
 $1.2\%$ short on the full profile, so elicitation is not measured against a weak
-recommender~\cite{dacrema2019progress,steck2019ease}. Its second channel folds concept questions: the
+recommender~\cite{dacrema2019progress,steck2019ease}. The Goodreads instrument is built the same way
+and sits $1.8\%$ short of its own RecVAE bar, $0.3374$ against $0.3436$. Its second channel folds concept questions: the
 1{,}031 MovieLens Tag Genome tags that carry at least thirty member items at relevance $0.5$
 (``dark humour'', ``courtroom''), each a whitened centroid of its
 member items, answered with a signed behavioural affinity read from the user's history.
@@ -557,10 +563,9 @@ sampling and the reduced EDDI acquisition stay below it there too, so the answer
 on the consumer.
 
 \paragraph{Both results hold on a second domain.}
-Everything above was re-measured end to end on Goodreads~\cite{wan2018goodreads}: 18{,}430 books and
-2{,}408 user-assigned shelves in place of films and tag-genome attributes, same split recipe and
-budgets, with the recommender, the concept encoder, both question orders and all six trees refitted
-there and nothing carried over. Cold start is harder -- asking nothing returns $.0940/.0058$ against
+Everything above was re-measured end to end on the Goodreads cohort of
+Section~\ref{sec:contract}: the recommender, the concept encoder, both question orders and all six
+trees refitted there. Cold start is harder -- asking nothing returns $.0940/.0058$ against
 $.1586/.0282$, and the greedy static order reaches $.1713/.0323$ against $.2590/.1237$ -- and the
 channels rebalance, sixteen concept questions obtaining $9.46$ answers against $12.36$ on films and
 the joint order giving concepts five of sixteen slots against ten. Both levers transfer: the bank is
