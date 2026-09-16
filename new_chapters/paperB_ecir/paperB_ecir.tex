@@ -198,11 +198,11 @@ MovieLens-25M~\cite{harper2015movielens}, the most recent stable MovieLens relea
 ratings and the Tag Genome that the concept channel needs, restricted to the project catalogue: 18{,}359
 train-vocabulary items, 140{,}768 train / 10{,}000 validation / 10{,}000 test users, per-user 80/20
 fold-in/target, seed 98765. The same recipe, constants and seed are applied to
-Goodreads~\cite{wan2018goodreads} as a second dataset, whose catalogue is the 18{,}430 most-rated
-books and whose cohort is 160{,}768 sampled users split 140{,}768 / 10{,}000 / 10{,}000 -- both
-matched to ML-25M's, so the two are read over equally sized catalogues and cohorts -- and whose
-concept channel is 2{,}408 user-assigned shelves in place of the tag genome. Every component is
-refitted there and nothing is carried across. The metric is full and tail NDCG@10, the tail measured on a head-deleted
+Goodreads~\cite{wan2018goodreads} as a second dataset, with both dimensions matched to ML-25M's by
+construction: 160{,}768 sampled users split 140{,}768 / 10{,}000 / 10{,}000, and an arena of the
+18{,}430 most-rated books against ML-25M's 18{,}430-title arena, of which 71 titles leave the
+training vocabulary there and none here. Its concept channel is 2{,}408 user-assigned shelves in
+place of the tag genome, and every component is refitted there. The metric is full and tail NDCG@10, the tail measured on a head-deleted
 candidate list under the short-head definition of Cremonesi et al.~\cite{cremonesi2010performance},
 scored with the recommender's learned decoder bias. The full catalogue is ranked with no negative
 sampling, since sampled ranking metrics do not preserve the ordering of
