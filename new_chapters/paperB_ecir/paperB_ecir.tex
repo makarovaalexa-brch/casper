@@ -76,8 +76,9 @@ factorisation~\cite{zhou2011functional}, acquisition
 functions~\cite{ma2019eddi,houlsby2011bald} and collaborative-filtering
 bandits~\cite{zhao2013interactive,zhang2020conucb,wang2023conlinucb,liu2025clisk} instantiate it.
 
-Those rules were designed when recommender quality was measured by RMSE or MAE, and their criteria
-reflect it: within-node rating variance~\cite{golbandi2011adaptive}, information gain about a latent
+The selection rules behind them were designed when recommender quality was measured by RMSE or MAE,
+and the scalar each scores a candidate question by reflects
+it: within-node rating variance~\cite{golbandi2011adaptive}, information gain about a latent
 variable~\cite{ma2019eddi}, posterior variance~\cite{houlsby2011bald}, an A-optimality
 trace~\cite{anava2015budget,sepliarskaia2018spq}, a bandit index over a predicted
 rating~\cite{zhao2013interactive,zhang2020conucb}. Evaluation has since moved to truncated, position-discounted top-$k$ ranking, because a deployed
