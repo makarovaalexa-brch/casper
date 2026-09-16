@@ -257,8 +257,8 @@ any search. Every order maximises full NDCG@10; tail NDCG@10 never enters one. E
 selected and scored under the protocol pool, which removes every rated fold-in item (141.2 per user),
 under which the empty interview on the test cohort reads $0.1586/0.0282$ and the rebuilt greedy
 items-only order exceeds the strongest heuristic by $+0.0144$ $[+0.0112,+0.0175]$ full at sixteen
-questions. That is the point: the heuristics and random orders these methods are usually measured
-against leave open how they compare with a metric-optimised order.
+questions. The heuristics and random orders these methods are usually measured against therefore
+leave open how they compare with a metric-optimised order.
 
 \section{RQ1: What the System Can Ask}
 \label{sec:rq1}
@@ -287,10 +287,10 @@ leave $11$ of $10{,}000$ users with nothing to say, where two item questions lea
 \section{RQ2: How the System Chooses}
 \label{sec:rq2}
 
-The second lever is the selection rule. Take the field's own adaptive
-machinery, Golbandi's ternary interview tree~\cite{golbandi2011adaptive}, which asks a question at
-each node and routes users down a like, dislike or did-not-answer branch, and change exactly one
-thing: the scalar by which a candidate question is scored. We call the resulting selector CASPER (Cold-start Adaptive Selection for Preference Elicitation in
+The second lever is the selection rule. We take an established adaptive selector, Golbandi's
+ternary interview tree~\cite{golbandi2011adaptive}, which asks a question at each node and routes
+users down a like, dislike or did-not-answer branch, and vary a single component of it: the scalar by
+which a candidate question is scored. We call the resulting selector CASPER (Cold-start Adaptive Selection for Preference Elicitation in
 Recommendation). Each of the 1{,}000 candidates, 500
 popularity-ranked items and 500 answerability-ranked concepts in one argmax, is scored by the
 node-size-weighted mean of its three children's cohort-mean measured held-out full NDCG@10, obtained
@@ -330,21 +330,22 @@ the minimum leaf size, the latter the fair control since it destroys only the ch
 
 \begin{table}[tbp]
 \centering
-\caption{Each published split criterion as a predictor of the metric (left, ML-25M: agreement with
-exact measured NDCG@10 gains over the $\approx$1{,}000 candidates at each of the 22 nodes our tree
-visits; regret is the NDCG@10 forgone by following it instead) and as the criterion a tree is grown
-by (right: full NDCG@10 gain over that dataset's own greedy static order, 10{,}000 test users,
-$K{=}16$, everything but the criterion held fixed, each dataset refitted end to end; three published criteria, two shuffle
-controls, ours). Add the static
-order's absolute from Table~\ref{tab:goodreads} to recover each criterion's own NDCG@10.
+\caption{Three published split criteria, two shuffle controls and ours. \emph{Right:} full NDCG@10
+gain over that dataset's own greedy static order at $K{=}16$, 10{,}000 test users, everything but the
+criterion held fixed and each dataset refitted end to end; add that order's absolute ($.2590$ on
+ML-25M, $.1713$ on Goodreads) to recover a criterion's own NDCG@10. \emph{Left:} how well each
+criterion predicts the metric it stands in for -- agreement with the exact measured NDCG@10 gain of
+each of the $\approx$1{,}000 candidates at each of the 22 nodes our tree visits, and the NDCG@10
+forgone by following the criterion instead. That diagnostic needs the exhaustive per-node sweep,
+which is banked for the ML-25M tree, so it is reported for that dataset alone.
 $^\star$ interval excluding zero.}
 \label{tab:criterion}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}l rrr rr@{}}
 \toprule
- & \multicolumn{3}{c}{\emph{as a predictor of the metric}} & \multicolumn{2}{c}{\emph{as a tree's criterion}} \\
-\cmidrule(lr){2-4}\cmidrule(lr){5-6}
+ & \multicolumn{3}{c}{\emph{as a predictor} (ML-25M)} & \multicolumn{2}{c}{\emph{gain over the static order}} \\
+\cmidrule(lr){2-4}\cmidrule(l){5-6}
 split criterion & $\rho$ & argmax & regret & ML-25M & Goodreads \\
 \midrule
 measured NDCG@10 (ours) & --- & --- & --- & $+0.01035^\star$ & $+0.01100^\star$ \\
@@ -371,14 +372,14 @@ $[-0.00448,+0.00277]$ tail, the only null in the matrix, so on this dataset repl
 nothing. Second, \emph{the failure is in the approximation, not in the shape of the loss}. At the root the
 measured held-out pairwise rank loss tracks measured NDCG@10 at Spearman $+0.784$ and forgoes only
 $+0.00459$, whereas the Taylor-approximated training-loss version of the same objective correlates at
-$-0.149$ and forgoes $+0.01473$. What does the work is measuring the value of asking, not a
-training loss over the tree fit.
+$-0.149$ and forgoes $+0.01473$. What separates the two is that one measures the value of asking and
+the other minimises a training loss over the tree fit.
 Third, \emph{depth alone does not indicate conditioning}: the min-leaf-respecting shuffle grows deeper, wider and
 more varied than the criterion that wins -- 27 leaves against 15, 286 distinct questions against 159
 -- and still loses by $-0.04817$. The logistic criterion is the sharpest
 row: it opens on exactly our question, then degrades monotonically until its NDCG@10 falls below
 its own one-question value, so a criterion can agree with the metric on the easiest decision and
-still walk the interview downhill. The ablation is not a refutation of the published results on
+still degrade the interview thereafter. The ablation is not a refutation of the published results on
 their own protocols.
 
 \paragraph{Who consumes the answers matters more than who selects them.}
@@ -388,10 +389,11 @@ over a frozen factorisation, regrowing and reselecting nothing. CASPER leads on 
 on ours, and reverses on the leaf model at eight questions ($-0.01375^\star$). The larger effect is
 on the level rather than the ordering: every cell of our recommender's block exceeds every cell of
 every other block at the same budget, so the recommender that consumes the answers should be
-established first. Two is all this comparison can have: an item-vector model such as
-RecVAE~\cite{ren2020recvae} cannot read a concept answer, so a concept-opening interview reaches it
-as empty input, and Golbandi's leaf model is the only published consumer we found that models the
-did-not-answer branch.
+established first. The comparison is limited by an interface constraint rather than by a shortage of
+models: a consumer that ingests an item vector, as RecVAE~\cite{ren2020recvae} and most published
+cold-start recommenders do, has no representation for a concept answer or for a refusal, so a
+concept-opening interview reaches it as empty input. Golbandi's leaf model admits the did-not-answer
+branch directly, which is why it is the one we can score an unmodified interview through.
 
 \begin{table}[tbp]
 \centering
@@ -429,7 +431,8 @@ NDCG@10 a uniformly random pick leaves unrealised; the rank correlations are app
 two of three are negative, so two of these surrogates point the wrong way, and the pairwise loss
 selects the measured argmax at no node. At the root the logistic criterion's argmax is the metric's,
 while variance ranks that question 250th of 1{,}000 and the pairwise loss 75th. They agree with the
-metric where the cohort is largest and stop agreeing where an adaptive method must earn its keep.
+metric where the cohort is largest, and diverge from it at the smaller, later states where
+conditioning has to justify the budget it spends.
 
 \section{RQ3: Why This Had Not Been Observed}
 \label{sec:rq3}
@@ -556,41 +559,19 @@ on the consumer.
 Everything above was re-measured end to end on Goodreads~\cite{wan2018goodreads}: 18{,}430 books and
 2{,}408 user-assigned shelves in place of films and tag-genome attributes, same split recipe and
 budgets, with the recommender, the concept encoder, both question orders and all six trees refitted
-there and nothing carried over. Cold start is harder and the channels rebalance -- sixteen concept
-questions obtain $9.46$ answers against $12.36$ on films, and the joint order gives concepts five of
-sixteen slots against ten -- so the levers are read on a domain that does not resemble the first.
-Both transfer (Table~\ref{tab:goodreads}), and so does the ablation behind the second: of the six
-criteria, exactly one puts the interview above the static order on the axis orders are selected for,
-and it is the measured metric (Table~\ref{tab:criterion}); the battery of published methods is
-ML-25M only. Two cells move. Hu and Yu's ranking
+there and nothing carried over. Cold start is harder -- asking nothing returns $.0940/.0058$ against
+$.1586/.0282$, and the greedy static order reaches $.1713/.0323$ against $.2590/.1237$ -- and the
+channels rebalance, sixteen concept questions obtaining $9.46$ answers against $12.36$ on films and
+the joint order giving concepts five of sixteen slots against ten. Both levers transfer: the bank is
+worth $+0.00610^\star$ full and $+0.01105^\star$ tail against $+0.01430^\star/+0.02199^\star$ on
+films, and the criterion $+0.01100^\star/+0.01059^\star$ against $+0.01035^\star/+0.00705^\star$,
+separating from four questions onward on both axes. So does the ablation behind the second lever: of
+the six criteria, exactly one puts the interview above the static order on the axis orders are
+selected for, and it is the measured metric (Table~\ref{tab:criterion}). The battery of published
+methods is ML-25M only. Two cells move. Hu and Yu's ranking
 surrogate, indistinguishable from Golbandi's rating surrogate on ML-25M, is $0.01286^\star$
 $[0.01015,0.01565]$ \emph{worse} than it here. And rating variance sits marginally above the static
 order on the tail, which no order is selected for and where our own margin is $4.6\times$ larger.
-
-\begin{table}[tbp]
-\centering
-\caption{Both levers on a second domain: 10{,}000 held-out test users each, full/tail NDCG@10 at
-sixteen questions, every component refitted per dataset and every gain measured against that
-dataset's own greedy static order. The five alternatives, regrown on both, are in
-Table~\ref{tab:criterion}. Full NDCG@10 is the axis every order is selected on; tail is descriptive.
-$^\star$ interval excluding zero.}
-\label{tab:goodreads}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{l cc}
-\toprule
- & ML-25M & Goodreads \\
-\midrule
-ask nothing & $.1586/.0282$ & $.0940/.0058$ \\
-greedy static order, items$+$concepts & $.2590/.1237$ & $.1713/.0323$ \\
-\midrule
-\emph{RQ1, bank:} items $\rightarrow$ items$+$concepts
-  & $+.0143^\star$/$+.0220^\star$ & $+.0061^\star$/$+.0111^\star$ \\
-\emph{RQ2, criterion:} CASPER $-$ static order
-  & $+.0104^\star$/$+.0070^\star$ & $+.0110^\star$/$+.0106^\star$ \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 
 \section{Limitations and Conclusion}
