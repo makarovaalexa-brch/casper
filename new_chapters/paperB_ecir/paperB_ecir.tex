@@ -569,10 +569,12 @@ films, and the criterion $+0.01100^\star/+0.01059^\star$ against $+0.01035^\star
 separating from four questions onward on both axes. So does the ablation behind the second lever: of
 the six criteria, exactly one puts the interview above the static order on the axis orders are
 selected for, and it is the measured metric (Table~\ref{tab:criterion}). The battery of published
-methods is ML-25M only. Two cells move. Hu and Yu's ranking
-surrogate, indistinguishable from Golbandi's rating surrogate on ML-25M, is $0.01286^\star$
-$[0.01015,0.01565]$ \emph{worse} than it here. And rating variance sits marginally above the static
-order on the tail, which no order is selected for and where our own margin is $4.6\times$ larger.
+methods is ML-25M only. Two comparisons behave differently on the two datasets. Hu and Yu's pairwise
+rank loss and Golbandi's rating variance are indistinguishable on ML-25M, the only null in the
+ablation at $+0.00020$ $[-0.00331,+0.00371]$; on Goodreads the rank loss is $0.01286^\star$
+$[0.01015,0.01565]$ \emph{worse} than the variance. And rating variance, $-0.0225$ on the ML-25M
+tail, is marginally \emph{above} the static order on the Goodreads tail at $+0.0023^\star$ -- an axis
+no order is selected for, and one where our own margin, $+0.0106$, is $4.6\times$ larger.
 
 
 \section{Limitations and Conclusion}
