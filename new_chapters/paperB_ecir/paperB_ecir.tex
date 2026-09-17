@@ -216,9 +216,9 @@ criterion's gains in the ablation (Table~\ref{tab:criterion}). Every other inter
 
 \paragraph{The instrument.}
 The frozen recommender every selector is scored with is a two-tower set encoder that ingests an
-arbitrary-length, mixed-channel evidence set with no per-user gradient step, validated against four requirements: frontier parity on a full profile, an open set-valued input interface, a rising
-cold-start curve on both axes, and identity with the frozen decoder at the empty
-interview~\cite{anon_instrument}. It reaches full/tail NDCG@10 $0.3496/0.2491$ against a RecVAE bar~\cite{ren2020recvae} of
+arbitrary-length, mixed-channel evidence set with no per-user gradient step, validated against
+frontier parity on a full profile, an open set-valued input interface, a rising cold-start curve on
+both axes, and identity with the frozen decoder at the empty interview~\cite{anon_instrument}. It reaches full/tail NDCG@10 $0.3496/0.2491$ against a RecVAE bar~\cite{ren2020recvae} of
 $0.3540/0.2497$ rebuilt here, indistinguishable on the tail (paired interval spanning zero) and
 $1.2\%$ short on the full profile, so elicitation is not measured against a weak
 recommender~\cite{dacrema2019progress,steck2019ease}. The Goodreads instrument is built the same way
@@ -230,16 +230,19 @@ member items, answered with a signed behavioural affinity read from the user's h
 \paragraph{Answers and interface.}
 A question is answered from the user's own held-out ratings: an item question by their half-star level
 if they rated it, a concept question by a signed implicit-exposure statistic over their profile,
-$\log_2\!\big((n_c+\tfrac12)/(e_c+\tfrac12)\big)$, where $n_c$ is the number of the tag's items the
-user consumed and $e_c$ the number expected from their volume and the tag's popularity; a concept is answerable when the user has consumed at least two of its items and had enough
+$\log_2\!\big((n_c+\tfrac12)/(e_c+\tfrac12)\big)$: a smoothed pointwise mutual
+information~\cite{church1990word} between user and tag, whose denominator carries the exposure
+correction that ExpoMF~\cite{liang2016expomf} makes explicit, with $n_c$ the number of the tag's
+items the user consumed and $e_c$ the number expected from their volume and the tag's popularity. A concept is answerable when the user has consumed at least two of its items and had enough
 exposure to have encountered them ($n_c\ge2$ and $e_c\ge1.5$); otherwise they refuse rather than
 dislike. An asked question the user cannot answer still forfeits its turn, folding as the encoder's
-unseen-exposure or refusal token. Answers are read from a per-user lookup built with that user's
-held-out targets removed and asserted at run time to contain none of them, and an answered item is outside the candidate pool, so no answer can
-place its own target there. What is inferred rather than observed is whether a user could
-have answered at all, for which we take having rated the item (Section~\ref{sec:limits}). A selector
-sees the questions and answers so far and returns the next question; a consumer folds the final
-answer set and ranks the catalogue. The two vary independently.
+unseen-exposure or refusal token. The per-user answer lookup is built with that user's held-out
+targets removed and asserted at run time to contain none of them, and an answered item is outside the
+candidate pool, so no answer can place its own target there. What is inferred rather than observed is
+whether a user could have answered at all, for which we take having rated the
+item (Section~\ref{sec:limits}). A selector sees the questions and answers so far and returns the
+next question; a consumer folds the final answer set and ranks the catalogue, and the two vary
+independently.
 
 \paragraph{Ports and tuning.}
 Each published method is re-implemented from its paper and gated on reproducing its published
@@ -393,7 +396,8 @@ their own protocols.
 The criterion is computed through the recommender that then scores it, so we hand the same two banked
 interviews to Golbandi's leaf model~\cite{golbandi2011adaptive} and to a conjugate belief accumulator
 over a frozen factorisation, regrowing and reselecting nothing. CASPER leads on the accumulator and
-on ours, and reverses on the leaf model at eight questions ($-0.01375^\star$). The larger effect is
+on ours, and reverses on the leaf model at eight questions ($-0.01375^\star$), where Thompson sampling
+and the reduced EDDI acquisition nonetheless stay below the static order too. The larger effect is
 on the level rather than the ordering: every cell of our recommender's block exceeds every cell of
 every other block at the same budget, so the recommender that consumes the answers should be
 established first. The comparison is limited by an interface constraint rather than by a shortage of
@@ -556,16 +560,9 @@ that ``RMSE is not a good measure for the performance of top-$N$ recommender sys
 implements Golbandi's and Sepliarskaia's methods, obtains poor results, and excludes both from its
 official experiments.
 
-\paragraph{Where the ordering reverses.}
-It reverses on Golbandi's leaf model, the one consumer here that reads the did-not-answer branch:
-there CASPER falls below the static order at eight questions (Table~\ref{tab:consumers}). Thompson
-sampling and the reduced EDDI acquisition stay below it there too, so the answer to RQ3 does not turn
-on the consumer.
-
 \paragraph{Both results hold on a second domain.}
-Everything above was re-measured end to end on the Goodreads cohort of
-Section~\ref{sec:contract}: the recommender, the concept encoder, both question orders and all six
-trees refitted there. Cold start is harder -- asking nothing returns $.0940/.0058$ against
+Everything above was re-measured on the Goodreads cohort of
+Section~\ref{sec:contract}. Cold start is harder -- asking nothing returns $.0940/.0058$ against
 $.1586/.0282$, and the greedy static order reaches $.1713/.0323$ against $.2590/.1237$ -- and the
 channels rebalance, sixteen concept questions obtaining $9.46$ answers against $12.36$ on films and
 the joint order giving concepts five of sixteen slots against ten. Both levers transfer: the bank is
