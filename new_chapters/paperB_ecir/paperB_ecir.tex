@@ -41,26 +41,28 @@
 \maketitle
 
 \begin{abstract}
-A cold-start recommender asks a new user a few questions before it can recommend. Two design choices
-govern the result: which questions the system is able to ask, and how it selects the next one. We
-study both under a single measurement contract on one strong recommender, with answers read from
-users' own recorded ratings and with a question the user cannot answer still consuming a turn.
-On the first, adding \emph{concept questions} to an item bank -- tag-level attributes that
-generalise over their member items, so a user can answer one without having consumed any specific
-item -- improves full NDCG@10 by $+0.01430$ at sixteen questions on 10{,}000
-held-out users from a single fixed question order asked of everybody, because sixteen concept
-questions obtain 12.36 answers where sixteen item questions obtain 3.11. On the second, only a rule
-that selects on the metric the system is judged on places an adaptive interview above a strong fixed
-order: with the tree, the search and the data held fixed, three published split criteria and two
-shuffle controls leave the interview below that order and the measured metric raises it above, by
-$+0.01035$. Both results hold
-on a second dataset. Two further results explain why this had not been observed. Published split
-criteria are close to uninformative about the metric they stand in for, correlating with measured
-NDCG@10 gains at $+0.010$, $-0.060$ and $-0.104$ and recovering $11$--$34\%$ of the gain a uniformly
-random choice leaves unrealised. And on ML-25M, in a re-implementation of eleven published selectors
-and three literature heuristics under one contract, every one is below a fixed order chosen by
-greedily maximising NDCG@10 at every budget from one to sixteen questions -- a comparator none of
-those papers was tested against.
+A cold-start recommender asks a new user a small number of questions before it can make effective
+recommendations. Two design choices govern this process: which questions the system can ask and how
+it selects the next one. We study both under a common evaluation protocol using one strong
+recommender, with answers reconstructed from users' recorded ratings and unanswered questions still
+consuming a turn. First, augmenting an item-based question bank with \emph{concept questions} --
+tag-level attributes that generalise across their associated items and can be answered without
+having consumed a specific item -- improves full NDCG@10 by $+0.01430$ at sixteen questions on
+10{,}000 held-out users from MovieLens-25M dataset using a single fixed question order for all
+users. This improvement is accompanied by substantially higher answerability: sixteen concept
+questions yield 12.36 answers on average, compared with 3.11 for sixteen item questions. Second,
+adaptive question selection improves performance only when questions are selected using the
+evaluation metric itself. With the tree, search procedure, and data held fixed, all three published
+split criteria and two shuffle controls perform below the strong fixed order, while selecting
+questions directly to maximise NDCG@10 improves performance by $+0.01035$. Both findings are
+replicated on a second dataset. Two further results help explain why this advantage has not been
+reported in prior work. The published split criteria are weakly aligned with the evaluation metric,
+correlating with measured NDCG@10 gains at $+0.010$, $-0.060$, and $-0.104$, and recover only
+$11$--$34\%$ of the gain left unrealised by uniformly random selection. Finally, on ML-25M, a
+re-implementation of eleven published selectors and three literature heuristics under a common
+evaluation protocol places every method below a fixed order chosen greedily to maximise NDCG@10 at
+every budget from one to sixteen questions -- a comparator that, to our knowledge, has not been
+evaluated in prior works.
 \keywords{Preference elicitation \and Cold start \and Conversational recommendation \and
 Reproducibility \and Evaluation.}
 \end{abstract}
