@@ -55,10 +55,10 @@ adaptive question selection improves performance only when questions are selecte
 evaluation metric itself. With the tree, search procedure, and data held fixed, all three published
 split criteria and two shuffle controls perform below the strong fixed order, while selecting
 questions directly to maximise NDCG@10 improves performance by $+0.01035$. Both findings are
-replicated on a second dataset. Two further results help explain why this advantage has not been
+replicated on a second dataset, Goodreads. Two further results help explain why this advantage has not been
 reported in prior work. The published split criteria are weakly aligned with the evaluation metric,
 correlating with measured NDCG@10 gains at $+0.010$, $-0.060$, and $-0.104$, and recover only
-$11$--$34\%$ of the gain left unrealised by uniformly random selection. Finally, on ML-25M, a
+$11$--$34\%$ of the gain left unrealised by uniformly random selection. Finally, on MovieLens-25M, a
 re-implementation of eleven published selectors and three literature heuristics under a common
 evaluation protocol places every method below a fixed order chosen greedily to maximise NDCG@10 at
 every budget from one to sixteen questions -- a comparator that, to our knowledge, has not been
