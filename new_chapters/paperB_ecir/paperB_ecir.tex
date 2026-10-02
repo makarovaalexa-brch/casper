@@ -90,8 +90,7 @@ and three of those report NDCG; the rest report rating error or cumulative regre
 group NDCG@10 is a measure they already use; for the second it establishes what their selection rules
 transfer to, as a recent ML-25M NDCG@10 benchmark also set out to
 do~\cite{proissl2024greedyslim}. We measure it under one contract governing every selector, with no simulator or language model in
-the measurement path (Section~
-ef{sec:contract}), and against the greedy prefix-optimal
+the measurement path (Section~\ref{sec:contract}), and against the greedy prefix-optimal
 question order under NDCG@10 rather than a heuristic.
 
 \medskip
@@ -150,8 +149,8 @@ Yu~\cite{hu2013interview} admit a pairwise rank loss into a split and The
 FacT~\cite{tao2019fact,haque2022factcrs} a BPR term, both computed on observed training interactions,
 undiscounted and untruncated; Bilgic and Bennett~\cite{bilgic2012activequery} put DCG@10 inside an
 acquisition function and ELO-DCG~\cite{long2010elodcg} the discount but not the truncation.
-The greedy NDCG attribute selector of Lin et al.~\cite{lin2023upsrec} ranks attributes by expected
-NDCG gain.
+Nearest to a ranking objective is the greedy NDCG attribute selector of Lin et
+al.~\cite{lin2023upsrec}, which ranks attributes by expected NDCG gain.
 
 \paragraph{What they were compared against.}
 Comparators in this literature are popularity, entropy and HELF
@@ -181,7 +180,7 @@ items, against 18{,}359 here.
 \section{Study Design}
 \label{sec:contract}
 
-An elicitation system settles two design choices, usually together: which questions it is able to
+An elicitation system has two levers, and they are usually set together: which questions it is able to
 ask, and how it chooses the next one. Settled together they cannot be attributed, since a gain may
 have come from either. We vary one at a time with everything else held fixed, measuring both through
 the same frozen recommender on the same cohorts.
@@ -598,7 +597,6 @@ counterpart; the recipe is deterministic and the search it receives is reported 
 (Table~\ref{tab:battery}).
 
 \smallskip\noindent
-oindent
 Put the reported metric into the split criterion and Golbandi's interview tree rises above a strong
 static order ($+0.01035$ at sixteen questions), where the five alternatives fitted by the same
 search do not; change what the system asks about rather than how it chooses, and the gain is larger
