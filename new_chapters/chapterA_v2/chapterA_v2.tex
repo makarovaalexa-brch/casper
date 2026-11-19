@@ -291,8 +291,9 @@ of our measuring apparatus, not of the instrument, and it is reported there.
 \begin{description}[leftmargin=2.4em,itemsep=1.5pt]
   \item[R1 --- full strength and identity.] Evaluating the fold on the full profile reproduces the
         frozen tower's full-profile NDCG@10 (full \emph{and} tail) to within a stated, paired-bootstrapped margin---and with an
-        \emph{empty} evidence set the ranking is the frozen decoder's exactly, not approximately. The identity half
-        is what licenses reading every later curve as evidence about ingestion rather than about a shifted baseline.
+        \emph{empty} evidence set the tower reduces to a single trained prior latent, the same one for every user.
+        That fixed starting point is what licenses reading every later curve as evidence about ingestion rather
+        than about a shifted baseline.
   \item[R2 --- an open set-valued input interface.] Two halves, and only the second can fail. The set half is
         structural: the fold is defined for every $t\ge0$ with no gradient step, because it is a running sum
         over observations. The \emph{open} half is measured: a concept must be a specific direction rather than a
@@ -801,9 +802,9 @@ not difficult, it is undefined. It is available to the amortised-encoder family,
 it.
 
 \emph{Where it is available, it carries a cost.} Such a layer has to leave full-profile accuracy exactly intact,
-which is a property to be measured and not assumed: our empty interview reproduces the frozen decoder's
-ranking identically (Spearman $1.0000$, $|\bmu_0|=0$), and the obvious alternative---ranking on the
-conjugate mean---forfeits $0.15$ full NDCG (\S\ref{sec:method}). Nor does a dense latent accept concepts
+which is a property to be measured and not assumed: at an empty interview the tower reduces to its own
+trained no-evidence prior, which ranks the catalogue better than the frozen decoder's bias does, and the
+obvious alternative---ranking on the conjugate mean---forfeits $0.15$ full NDCG (\S\ref{sec:method}). Nor does a dense latent accept concepts
 merely because it is dense: a raw concept centroid ranks its own member items at AUC $0.44$, \emph{below
 chance}, and only whitening makes it a direction ($0.94$). The channel is built, not inherited.
 
@@ -1447,12 +1448,14 @@ Interviewability costs the architecture something on the full profile, and the i
 roughly half the cost. The channel is \emph{most} valuable on the short interview, where the extra bits
 arrive before collaborative signal can fill in (Figure~\ref{fig:gradedcurve}), but it is not free there and
 worthless here.
-Second, the R1 \emph{identity} half holds exactly and
-not merely statistically: with an empty evidence set the tower emits a zero latent ($|\bmu_0|=0$ to numerical
-precision) and its scores are a rank-identical image of the frozen decoder's learned bias (Spearman $1.0000$), which
-is what licenses reading every later interview curve as evidence about \emph{ingestion} rather than about a shifted
-baseline. The cold intercept of the interview curves in this chapter, $0.1279/0.0192$, is that same
-non-personalised read-out; the zero-item concept curves of \S\ref{sec:concept:results} are scored under
+Second, at an empty evidence set the forward reduces to the
+trained prior latent $\bmu_0$ exactly, because the anchor weight and the residual gate are both zero at zero
+answers. That prior is not the frozen decoder's bias: $|\bmu_0|=4.5256$, and its ranking agrees with the decoder
+bias at Spearman $0.4887$ with seven of the top ten shared. It is trainable by design: with the prior frozen at
+zero, a zero-answer interview has no trainable parameter in the forward path at all. Every interview curve starts
+from this one point for every user, which is what licenses reading every later interview curve as evidence about
+\emph{ingestion} rather than about a shifted baseline. The cold intercept of the interview curves in this chapter, $0.1279/0.0192$, is that prior's
+score; the zero-item concept curves of \S\ref{sec:concept:results} are scored under
 their own protocol and carry their own intercept, $0.1277/0.0267$, which is why the two are never
 compared across.
 Accuracy is therefore settled for CASPER: R1 is evaluated through the same fold that every later
@@ -1472,7 +1475,7 @@ Table~\ref{tab:batteryresults} reports every gate.
 \toprule
 Check & Criterion & Measured & Verdict \\
 \midrule
-R1 & indistinguishable on tail, bounded full cost; identity at $t{=}0$ & $0.3496/0.2491$ vs $0.3540/0.2497$; paired tail $-0.0006$ (CI $[-0.0020,+0.0008]$, contains zero), paired full $-0.0043$ (CI $[-0.0059,-0.0028]$, separated, $1.2\%$ rel.); $|\bmu_0|{=}0$, Spearman $1.0000$ vs decoder bias & \textbf{PASS} \\
+R1 & indistinguishable on tail, bounded full cost; identity at $t{=}0$ & $0.3496/0.2491$ vs $0.3540/0.2497$; paired tail $-0.0006$ (CI $[-0.0020,+0.0008]$, contains zero), paired full $-0.0043$ (CI $[-0.0059,-0.0028]$, separated, $1.2\%$ rel.); empty interview reduces to the trained prior $\bmu_0$, $|\bmu_0|{=}4.53$, Spearman $0.4887$ vs decoder bias & \textbf{PASS} \\
 R2 & open set-valued input: any $t$, and directions not fixed at fit time & set half by construction. Open half: concept direction ranks its members at AUC $0.94$ whitened; sign contrast $+0.2096$ (CI $[+0.1986,+0.2208]$), identity contrast $+0.1278$ (CI $[+0.1195,+0.1361]$); a held-out concept folds from its name alone at $>300\times$ chance & \textbf{PASS} \\
 R3$^\ddagger$ & cold curve rises on a bank fixed in advance & $0.1574\!\to\!0.2609$ full, $0.0505\!\to\!0.1062$ tail ($q{=}2\!\to\!16$); rise $+0.1035$ (CI $[0.1000,0.1071]$), monotone $\rho{=}1.0$ & \textbf{PASS}$^\ddagger$ \\
 R4 & sign and intensity are carried & sign-flip $0.4298\!\to\!0.1345$, i.e.\ $-0.2953$ (CI $[-0.3013,-0.2892]$, $n{=}7{,}563$); neutralisation $0.4198\!\to\!0.1714$, drop $0.2484$ (CI $[0.2436,0.2532]$), tail $0.2999\!\to\!0.0487$; intensity staircase $\rho{=}0.794$ on rank shift, $0.818$ on $\Delta$NDCG; graded over a fair binarising ablation $+0.0102$ at $k{=}2$ (CI $[+0.0087,+0.0118]$), and $+0.0039$ full at full profile on identical support (CI $[+0.0025,+0.0053]$) & \textbf{PASS} \\
