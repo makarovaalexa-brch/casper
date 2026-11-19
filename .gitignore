@@ -134,3 +134,14 @@ models/baselines_ml25m_liang/*.pt
 data/ml-1m/
 data/goodbooks-10k/
 data/goodreads_ucsd/
+
+# Experiment outputs: regenerable, and they stay where produced rather than in git
+# (CLAUDE.md recording protocol). Added 2026-11-19 while purging them from history.
+experiments/**/*.npz
+experiments/**/*.npy
+experiments/battery/value_dataset.jsonl
+experiments/results/snap5/golbandi_snap_ml100k_d8.json
+experiments/results/snap5/golbandi_snap_ml100k_mc25_d8.json
+experiments/baselines/interview/**/fixedorder__greedy_concepts_k16.json
+experiments/baselines/interview/**/dpe_concept_k16.json
+experiments/baselines/interview/**/conlinucb_bs_static_k16.json
