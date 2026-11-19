@@ -121,7 +121,7 @@ strong and flexible enough that a good interview is not wasted on it. We call su
 
 \paragraph{The confound is not hypothetical, and it changes published conclusions.}
 The ranking of the classical cold-start selection heuristics is not a property of the heuristics. Under the node
-model of Golbandi et al.~\cite{golbandi2011adaptive}, the order Rashid et al.~\cite{rashid2002getting} report
+model of Golbandi et al.~\cite{golbandi2011adaptive}, the order Rashid et al.~\cite{rashid2008learning} report
 reproduces; under a frontier-accuracy consumer it \emph{inverts}, on both full and tail NDCG@10, with every gap
 that decides an ordering separated by a paired per-user bootstrap---the questions, users, answers, budget and
 candidate pool held fixed throughout, so the only thing that varies is the model reading the answers
@@ -317,9 +317,10 @@ of our measuring apparatus, not of the instrument, and it is reported there.
         \emph{Intensity}: neutralising values to ``indifferent'' while freezing membership costs NDCG, quality is
         monotone in the stated level. Graded input then beats a fair binarising ablation on two distinct
         comparisons, and we name what each varies: holding the fold-in support \emph{identical} and
-        re-valuing each item by its star level pays $+0.0039$ full at the full profile, while \emph{adding}
-        the sub-threshold answers pays far more on the short interview---$+0.0144$ at $k{=}2$---and nothing
-        from $k{=}8$ onward.
+        re-valuing each item by its star level pays $+0.0039$ full at the full profile, while folding the
+        graded history instead of the likes-only history, which \emph{adds} the sub-threshold answers, pays
+        far more on the short interview---$+0.0102$ at $k{=}2$ (Fig.~\ref{fig:gradedcurve})---and nothing
+        separable from $k{=}8$ onward.
 \end{description}
 
 \emph{Integrity items} (across all four):
@@ -1399,7 +1400,7 @@ On the baselines' native input (items only), evaluate full and tail NDCG@10 on t
 paired per-user bootstrap CI, confirming the instrument's fold reproduces the frozen tower and is indistinguishable
 from EASE/RecVAE on the tail, within a stated margin on the full profile. The item-only baselines are measured (Table~\ref{tab:master}, \textsc{liang} column).
 
-\textbf{NDCG@100, the secondary metric}, orders the \textsc{liang} column identically and is reported here
+\textbf{NDCG@100, the secondary metric}, orders the frontier band and the first six rows of the \textsc{liang} column identically, reorders only the middle of the table (RBMF, EDDI and the conjugate belief move), and is reported here
 rather than as a third pair of table columns: RecVAE $0.4537$, ours $0.4492$, EASE $0.4375$, EDLAE
 $0.4330$, Mult-VAE $0.4303$, user-kNN $0.3958$, iALS $0.3700$, TaNP $0.3661$, RBMF $0.3533$, Turbo-CF
 $0.3569$, Item-kNN $0.3200$, EDDI $0.3110$, the conjugate belief $0.2883$, SASRec $0.2465$, Most-Popular
@@ -1602,7 +1603,7 @@ Everything above argues that a certified, interviewable recommender is \emph{bui
 \emph{necessary}---that without one, a comparison between elicitation strategies does not have a stable answer.
 
 The classical cold-start question-selection heuristics were validated on the recommenders of their day. Rashid et
-al.~\cite{rashid2002getting} report the order \textsc{helf} $>$ \textsc{entropy0} $>$ \textsc{popularity}, and that
+al.~\cite{rashid2008learning} report the order \textsc{helf} $>$ \textsc{entropy0} $>$ \textsc{popularity}, and that
 order has been carried forward as a property of the \emph{heuristics}. We ran all three under a fixed interview
 protocol---identical users, identical budget $k{=}8$, identical answer model, a question bank fixed in advance,
 no popularity floor---and varied only the recommender that consumes the answers.
